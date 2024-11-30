@@ -87,7 +87,7 @@ jobs:
           elif [[ "${{ matrix.userName }}" == "FongMi" ]]; then
             sed -i 's/TeamNewPipe/teamnewpipe/g' app/build.gradle
           elif [[ "${{ matrix.userName }}" == "chengxue2020" ]]; then
-            
+            echo '空'
           else
              sed -i "/versionName/s#[0-9a-zA-Z_\.\'\"-]\+\$#\'${{ env.tag }}\'#" app/build.gradle
              sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
