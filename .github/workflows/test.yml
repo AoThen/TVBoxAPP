@@ -9,6 +9,10 @@ on:
         description: '忽略构建记录以重新构建'
         required: false
         type: boolean
+      donotpublish:
+        description: '构建后不提交发布新版'
+        required: false
+        type: boolean
       crosswalk:
         description: '是否修改crosswalk源'
         required: false
@@ -27,10 +31,6 @@ jobs:
           - userName: q215613905
             repoName: TVBoxOS
             branchName: main
-          - userName: takagen99
-            repoName: Box
-            branchName: main
-            java_ver: 17
           - userName: takagen99
             repoName: Box
             branchName: main
