@@ -13,7 +13,10 @@ on:
         description: '是否修改crosswalk源'
         required: false
         type: boolean
-
+      testOption:
+        description: 'arm64支持，不支持ijk解码'
+        required: false
+        type: boolean
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,6 +31,17 @@ jobs:
             repoName: Box
             branchName: main
             java_ver: 17
+          - userName: takagen99
+            repoName: Box
+            branchName: main
+            java_ver: 17
+          - userName: FongMi
+            repoName: TV
+            branchName: release
+            java_ver: 17
+          - userName: mlabalabala
+            repoName: box
+            branchName: main
           - userName: chengxue2020
             repoName: takagen99
             branchName: main
@@ -70,6 +84,10 @@ jobs:
             sed -i 's/\.concat(buildTime())/ +\"${{ env.tag }}\"/g' app/build.gradle 
             # 目前关于页面没有合并我的分支
             sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
+          elif [[ "${{ matrix.userName }}" == "FongMi" ]]; then
+            sed -i 's/TeamNewPipe/teamnewpipe/g' app/build.gradle
+          elif [[ "${{ matrix.userName }}" == "chengxue2020" ]]; then
+            
           else
              sed -i "/versionName/s#[0-9a-zA-Z_\.\'\"-]\+\$#\'${{ env.tag }}\'#" app/build.gradle
              sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
@@ -90,6 +108,13 @@ jobs:
         run: |
           #zip -q -x ".git/*" -x  ".github/*" -r sourceCode-${{ env.commitS }}.zip .
           tar -cJf sourceCode-${{ env.commitS }}.tar.xz --exclude=.git --exclude=.github *
+      - name: Option For Test
+        if: ${{ inputs.testOption }}
+        working-directory: TVBoxOSC
+        run: |
+          #添加arm64支持，不支持ijk解码
+          sed -i "/armeabi-v7a[\'\"]$/s#\$#, 'arm64-v8a'#" app/build.gradle
+          sed -i "/armeabi-v7a[\'\"]$/s#\$#, 'arm64-v8a'#" player/build.gradle
       - name: Release Apk Sign
         if: ${{ env.commit }}
         working-directory: TVBoxOSC
