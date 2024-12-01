@@ -174,6 +174,8 @@ jobs:
             git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
           fi
           echo -e '\n```' >> apk/${{ matrix.userName }}-Release.log
+
+          
       - name: Upload App To Artifact
         uses: actions/upload-artifact@main
         if: ${{ env.commit }}
@@ -181,6 +183,11 @@ jobs:
           name: ${{ matrix.userName }}-${{ matrix.repoName }}
           path: |
             TVBoxOSC/apk/*
+
+      - name: Whether Or Not to Publish
+        if: ${{ inputs.donotpublish && env.commit }}
+        run: |
+          echo "commit=" >> $GITHUB_ENV
 
       - name: Release APP
         uses: softprops/action-gh-release@v2
@@ -191,7 +198,21 @@ jobs:
           body_path: TVBoxOSC/apk/${{ matrix.userName }}-Release.log
           files: |
             TVBoxOSC/apk/*
-
+            
+      - name: Push to master
+        if: ${{ env.commit }}
+        run: |
+          sed -i '/url =/d' ./.git/config
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url --add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git status
+          git pull --rebase
+          sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}\/${{ matrix.branchName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
+          rm -rf Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+          git add --all
+          git commit -m "${{ matrix.repoName }}_${{ matrix.userName }}_${{ env.tag }}_${{ env.commit }}"
+          git push -u -f origin main
   clean:
     needs: build
     runs-on: ubuntu-latest
