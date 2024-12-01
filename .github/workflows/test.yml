@@ -6,19 +6,19 @@ on:
   workflow_dispatch:
     inputs:
       rebuild:
-        description: '忽略构建记录以重新构建'
+        description: "忽略构建记录以重新构建"
         required: false
         type: boolean
       donotpublish:
-        description: '构建后不提交发布新版'
+        description: "构建后不提交发布新版"
         required: false
         type: boolean
       crosswalk:
-        description: '是否修改crosswalk源'
+        description: "是否修改crosswalk源"
         required: false
         type: boolean
       testOption:
-        description: 'arm64支持，不支持ijk解码'
+        description: "arm64支持，不支持ijk解码"
         required: false
         type: boolean
 jobs:
@@ -88,10 +88,12 @@ jobs:
             sed -i 's/TeamNewPipe/teamnewpipe/g' app/build.gradle
           elif [[ "${{ matrix.userName }}" == "chengxue2020" ]]; then
             echo '空'
+          elif [[ "${{ matrix.userName }}" == "mlabalabala" ]]; then
+            echo '空'
           else
              sed -i "/versionName/s#[0-9a-zA-Z_\.\'\"-]\+\$#\'${{ env.tag }}\'#" app/build.gradle
              sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
-          fi 
+          fi
       - name: crosswalk Modify
         if: ${{ inputs.crosswalk }}
         working-directory: TVBoxOSC
@@ -166,16 +168,19 @@ jobs:
         working-directory: TVBoxOSC
         run: |
           lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
+          echo $lastCommit
           export LESSCHARSET=utf-8
           echo -e "Credit: [${{ matrix.userName }}](${{ env.upStream }})\nCommit: ${{ env.commit }}\nChangelog:\n\`\`\`" > apk/${{ matrix.userName }}-Release.log
           if [ "${{ env.commit }}" == "${lastCommit}" ]; then
-            git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
+            COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
           else
-            git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
+            COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }}...${myLastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
           fi
+
+          echo "$COMMIT_MESSAGE"
+          echo "$COMMIT_MESSAGE" >> apk/${{ matrix.userName }}-Release.log
           echo -e '\n```' >> apk/${{ matrix.userName }}-Release.log
 
-          
       - name: Upload App To Artifact
         uses: actions/upload-artifact@main
         if: ${{ env.commit }}
@@ -198,7 +203,7 @@ jobs:
           body_path: TVBoxOSC/apk/${{ matrix.userName }}-Release.log
           files: |
             TVBoxOSC/apk/*
-            
+
       - name: Push to master
         if: ${{ env.commit }}
         run: |
