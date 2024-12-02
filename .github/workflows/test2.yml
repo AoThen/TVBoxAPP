@@ -1,0 +1,106 @@
+name: Build-TVBox2
+
+on:
+  workflow_dispatch:
+  # push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Clone the repository
+        run: |
+          # （1）OK影视版本 项目地址：https://github.com/FongMi/TV 支持直播多线路、自动换源、直播倍速，手机投屏；https://github.com/FongMi/Release/blob/fongmi/README.md
+          # mobile = 手機版,leanback = 電視版,java = jar + js 爬蟲,python = jar + js + py 爬蟲,arm64_v8a = 64 位元,armeabi_v7a = 32 位元,dev = 內測版,kitkat = 4.x 版,release = 正式版
+          git clone --depth 1  https://github.com/FongMi/TV
+          # 加速度调整进度且直观、栏目类不能移到别的栏目、控制最大音量、exo支持设置surface_type、优化访问资源
+          # git clone https://github.com/geneRocket/TV
+          # （2）q215613905版本 项目地址：https://github.com/q215613905/TVBoxOS 支持直播回放；
+          # git clone https://github.com/q215613905/TVBoxOS
+          # （3）takagen99版本 项目地址：https://github.com/takagen99/Box 支持直播回放，界面美观；
+          # git clone https://github.com/takagen99/Box
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # - name: Extra Modify
+      #   working-directory: TV
+      #   run: |
+      #     echo '修改VersionName'
+      #     sed -i "/versionName/s#[0-9a-zA-Z_\.\'\"-]\+\$#\'${{ env.tag }}\'#" app/build.gradle
+      #     sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
+      #     echo 'crosswalk源，防挂'
+      #     if grep -q 'crosswalk' build.gradle; then
+      #       sed -i "/crosswalk/a\        maven { url 'https://o0halflife0o.github.io/crosswalk/releases/crosswalk/android/maven2' }" build.gradle
+      #     else
+      #       sed -i "/jitpack.io/a\        maven { url 'https://o0halflife0o.github.io/crosswalk/releases/crosswalk/android/maven2' }" build.gradle
+      #     fi
+      - name: Setup Python for OK影视
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Release Apk Sign
+        # if: ${{ env.commit }}
+        # working-directory: TVBoxOSC
+        working-directory: TV
+        run: |
+          signingConfigs='ICAgIHNpZ25pbmdDb25maWdzIHtcCiAgICAgICAgaWYgKHByb2plY3QuaGFzUHJvcGVydHkoIlJFTEVBU0VfU1RPUkVfRklMRSIpKSB7XAogICAgICAgICAgICBteUNvbmZpZyB7XAogICAgICAgICAgICAgICAgc3RvcmVGaWxlIGZpbGUoUkVMRUFTRV9TVE9SRV9GSUxFKVwKICAgICAgICAgICAgICAgIHN0b3JlUGFzc3dvcmQgUkVMRUFTRV9TVE9SRV9QQVNTV09SRFwKICAgICAgICAgICAgICAgIGtleUFsaWFzIFJFTEVBU0VfS0VZX0FMSUFTXAogICAgICAgICAgICAgICAga2V5UGFzc3dvcmQgUkVMRUFTRV9LRVlfUEFTU1dPUkRcCiAgICAgICAgICAgICAgICB2MVNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICB2MlNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICBlbmFibGVWM1NpZ25pbmcgPSB0cnVlXAogICAgICAgICAgICAgICAgZW5hYmxlVjRTaWduaW5nID0gdHJ1ZVwKICAgICAgICAgICAgfVwKICAgICAgICB9XAogICAgfVwKXA=='
+          signingConfig='ICAgICAgICAgICAgaWYgKHByb2plY3QuaGFzUHJvcGVydHkoIlJFTEVBU0VfU1RPUkVfRklMRSIpKSB7XAogICAgICAgICAgICAgICAgc2lnbmluZ0NvbmZpZyBzaWduaW5nQ29uZmlncy5teUNvbmZpZ1wKICAgICAgICAgICAgfVwK'
+          signingConfigs="$(echo "$signingConfigs" |base64 -d )"
+          signingConfig="$(echo "$signingConfig" |base64 -d )"
+          sed -i -e "/defaultConfig {/i\\$signingConfigs " -e "/debug {/a\\$signingConfig " -e "/release {/a\\$signingConfig " app/build.gradle
+          cp -f ${{ github.workspace }}/.github/workflows/TVBoxOSC.jks app/TVBoxOSC.jks
+          sed -i '$a\RELEASE_STORE_FILE=./TVBoxOSC.jks'     ./gradle.properties
+          sed -i '$a\RELEASE_KEY_ALIAS=TVBoxOSC'            ./gradle.properties
+          sed -i '$a\RELEASE_STORE_PASSWORD=TVBoxOSC'       ./gradle.properties
+          sed -i '$a\RELEASE_KEY_PASSWORD=TVBoxOSC'         ./gradle.properties
+
+      - name: Build release with Gradle
+        run: |
+          # # takagen99版本
+          # cd Box && chmod +x ./gradlew
+
+          # q215613905版本
+          # cd TVBoxOS && chmod +x ./gradlew
+
+          # OK影视版本
+          # cd TV && git checkout fongmi
+          cd TV
+          chmod +x ./gradlew
+
+          # 20240908代码版本报错
+          sed -i "s/DanmakuFlameMaster/dfm/" app/build.gradle
+          sed -i "40a\import com.fongmi.android.tv.event.RefreshEvent;" app/src/leanback/java/com/fongmi/android/tv/ui/activity/LiveActivity.java
+          cat app/src/leanback/java/com/fongmi/android/tv/ui/activity/LiveActivity.java
+          # error : /home/runner/work/actions/actions/TV/app/src/mobile/res/layout-sw600dp/activity_video.xml:355:15: Error: The element type "LinearLayout" must be terminated by the matching end-tag "</LinearLayout>".
+          # sed -i "158,165d" app/src/mobile/res/layout-sw600dp/activity_video.xml
+
+          # ./gradlew clean assembleRelease
+          ./gradlew clean assemblerelease --build-cache --parallel --daemon --warning-mode all
+          # ls -R ./TV
+          ls -R .
+
+      - name: find App APK file
+        run: |
+          mkdir -p ${{ github.workspace }}/apk/
+          for file in `find ~ -name "*.apk" -print`; do
+            mv "$file" ${{ github.workspace }}/apk/
+          done
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apk
+          path: ${{ github.workspace }}/apk/*
+          # path: TV/app/build/outputs/apk/release/*/*.apk
+          if-no-files-found: error
