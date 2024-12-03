@@ -1,7 +1,7 @@
 name: Build-TVBox4
 
 on:
-  push:
+#   push:
   workflow_dispatch:
     inputs:
       rebuild:
