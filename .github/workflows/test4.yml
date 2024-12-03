@@ -23,9 +23,9 @@ jobs:
           - userName: xinyi1984
             repoName: TV
             branchName: fongmi
-          - userName: xinyi1984
-            repoName: TV
-            branchName: dev
+        #   - userName: xinyi1984
+        #     repoName: TV
+        #     branchName: dev
           - userName: xinyi1984
             repoName: TV
             branchName: release
@@ -64,6 +64,8 @@ jobs:
           echo "tag=$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
           sed -i 's|/home/runner/work/TVBox-TV/TVBox-TV|${{ github.workspace }}|g' settings.gradle
           cat settings.gradle
+
+          echo "tagx=${{ matrix.userName }}-${{ matrix.repoName }}-${{ matrix.branchName }}-$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
 
       - name: Extra Modify
         if: ${{ env.commit }}
@@ -148,7 +150,7 @@ jobs:
         run: |
           rm -rf apk/
           mkdir -p apk/
-          for file in `find ~ \( -name "*python*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -print`; do
+          for file in `find ~ \( -name "*python*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -not -name "*mobile*" -print`; do
           #for file in `find ~ -name "*java*.apk" -not -name "*x86*" -print`; do
             # 获取文件的基本名称
             base=$(basename "$file")
@@ -200,19 +202,30 @@ jobs:
           path: |
             TVBox-TV/media/apk/*.apk
 
-      - name: Push to master
+      - name: Release APP
+        uses: softprops/action-gh-release@v2
+        if: ${{ env.commit }}
+        with:
+          name: ${{ env.tagx }}
+          tag_name: ${{ env.tagx }}
+          body_path: TVBoxOSC/apk/${{ matrix.userName }}-Release.log
+          files: |
+            TVBox-TV/media/apk/*.apk
+
+      - name: Push to main
         if: ${{ env.commit }}
         run: |
           rm -rf TVBox-TV
           git reset --hard #用于将当前分支的 HEAD 指针强制移动到指定的提交，并重置工作目录和暂存区以匹配该提交，这会丢弃所有未提交的更改
-          sed -i '/url =/d' ./.git/config
+          #sed -i '/url =/d' ./.git/config
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote set-url --add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          #git remote set-url --add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git pull --rebase
           sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
           git add --all
           git commit -m "${{ env.commit }}"
-          git push -u -f origin master
+          git push -f
+          #git push -u -f origin main
           #continue-on-error: true 是因为 git commit 会失败也是预期的，这个步骤可以忽略失败。加上这个命令就可以在这个步骤失败的时候，不会影响其他步骤
         continue-on-error: true
