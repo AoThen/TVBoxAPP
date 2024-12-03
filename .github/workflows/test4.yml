@@ -208,7 +208,7 @@ jobs:
         with:
           name: ${{ env.tagx }}
           tag_name: ${{ env.tagx }}
-          body_path: TVBoxOSC/apk/${{ matrix.userName }}-Release.log
+          body_path: TVBox-TV/media/${{ matrix.userName }}-Release.log
           files: |
             TVBox-TV/media/apk/*.apk
 
