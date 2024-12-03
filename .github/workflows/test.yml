@@ -98,7 +98,7 @@ jobs:
              sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
           fi
       - name: crosswalk Modify
-        if: ${{ inputs.crosswalk && env.commit }}
+        if: ${{ env.commit && inputs.crosswalk }}
         working-directory: TVBoxOSC
         run: |
           echo 'crosswalk源，防挂'
@@ -179,9 +179,6 @@ jobs:
         working-directory: TVBoxOSC
         run: |
 
-          if [[ "${{ matrix.userName }}" == "mlabalabala" ]]; then
-            echo 'Nothing' >> apk/${{ matrix.userName }}-Release.log
-          else
             lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
             echo $lastCommit
             export LESSCHARSET=utf-8
@@ -195,7 +192,6 @@ jobs:
             echo $COMMIT_MESSAGE
             echo "$COMMIT_MESSAGE" >> apk/${{ matrix.userName }}-Release.log
             echo -e '\n```' >> apk/${{ matrix.userName }}-Release.log
-          fi
 
       - name: Upload App To Artifact
         uses: actions/upload-artifact@main
@@ -203,7 +199,7 @@ jobs:
         with:
           name: ${{ matrix.userName }}-${{ matrix.repoName }}
           path: |
-            TVBoxOSC/apk/*
+            TVBoxOSC/apk/*.apk
 
       - name: Whether Or Not to Publish
         if: ${{ inputs.donotpublish && env.commit }}
@@ -218,7 +214,7 @@ jobs:
           tag_name: ${{ env.tagx }}
           body_path: TVBoxOSC/apk/${{ matrix.userName }}-Release.log
           files: |
-            TVBoxOSC/apk/*
+            TVBoxOSC/apk/*.apk
 
       - name: Push to master
         if: ${{ env.commit }}
