@@ -57,7 +57,7 @@ jobs:
           cd TVBox-TV
           #备注git checkout -b main origin/main 默认release分支
           #git checkout -b main origin/main
-          cd /home/runner/work/${{ github.workspace }}/TVBox-TV
+          cd ${{ github.workspace }}
           git clone ${{ env.upStream }} TVBox-TV/media
           cd TVBox-TV/media
           git checkout ${{ env.commit }}
@@ -130,7 +130,7 @@ jobs:
         if: ${{ env.commit }}
         working-directory: TVBox-TV/media
         run: |
-          chmod +x /home/runner/work/${{ github.workspace }}/TVBox-TV/TVBox-TV/media/gradlew
+          chmod +x ${{ github.workspace }}/TVBox-TV/media/gradlew
           #cp -r gradle.properties local.properties
           rm -rf app/src/armeabi_v7a/assets
           rm -rf app/src/arm64_v8a/assets
