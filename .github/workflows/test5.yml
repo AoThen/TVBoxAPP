@@ -37,27 +37,16 @@ jobs:
           flutter-version: '3.22.x'
           cache: true 
 
-      # 打开MAC Desktop支持
-      - name: Enable Flutter Desktop
-        run: flutter config --enable-macos-desktop
 
       # 更新Flutter的packages
-      - name: Restore packages
+      - name: Restore tv packages
         run: |
-          cd simple_live_tv/simple_live_app
+          cd simple_live_tv/simple_live_tv_app
           flutter pub get
-
-      # 安装appdmg npm install -g appdmg
-      - name: Install appdmg
-        run: npm install -g appdmg
-
-      # 设置flutter_distributor环境
-      - name: Install flutter_distributor
-        run: dart pub global activate flutter_distributor
 
 
       # TV APK签名设置
-      - name: Create key.properties
+      - name: Create tv key.properties
         run: |
           echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" > simple_live_tv/simple_live_tv_app/android/key.properties
           echo "storePassword=TVBoxOSC" >> simple_live_tv/simple_live_tv_app/android/key.properties
@@ -80,6 +69,38 @@ jobs:
             simple_live_tv/simple_live_tv_app/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
 
 # simple_live_tv/simple_live_tv_app/build/app/outputs/flutter-apk/app-x86_64-release.apk
+
+
+      # 更新Flutter的packages
+      - name: Restore app packages
+        run: |
+          cd simple_live_tv/simple_live_app
+          flutter pub get
+
+
+      # TV APK签名设置
+      - name: Create app key.properties
+        run: |
+          echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" > simple_live_tv/simple_live_app/android/key.properties
+          echo "storePassword=TVBoxOSC" >> simple_live_tv/simple_live_app/android/key.properties
+          echo "keyPassword=TVBoxOSC" >> simple_live_tv/simple_live_app/android/key.properties
+          echo "keyAlias=TVBoxOSC" >> simple_live_tv/simple_live_app/android/key.properties
+
+      #打包 Android TV APK
+      - name: Build app APK
+        run: |
+          cd simple_live_tv/simple_live_app
+          flutter build apk --release --split-per-abi
+
+      #上传TV APK至Artifacts
+      - name: Upload app APK to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android_app
+          path: |
+            simple_live_tv/simple_live_app/build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            simple_live_tv/simple_live_app/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+
 
       - name: Delete workflow runs
         uses: AoThen/delete-workflow-runs@main

@@ -1,7 +1,7 @@
 name: Build-Legado
 
 on:
-  push:
+#   push:
   workflow_dispatch:
 
 jobs:
@@ -25,6 +25,9 @@ jobs:
           upStream=https://github.com/${{ matrix.userName }}/${{ matrix.repoName }}
           echo "upStream=$upStream" >> $GITHUB_ENV
           commit=$(curl -sL $upStream/commits/${{ matrix.branchName }} |grep -o '/${{ matrix.userName }}/${{ matrix.repoName }}/commit/[a-z0-9]\+' |head -1 | cut -d\/ -f5)
+          if [[ -z "${commit}" ]]; then
+            commit=$(curl -s "https://api.github.com/repos/${{ matrix.userName }}/${{ matrix.repoName }}/commits/${{ matrix.branchName }}?per_page=1" | jq -r '.sha' )
+          fi
           if ! git log --oneline |grep -q "$commit"; then
             echo "commit=$commit" >> $GITHUB_ENV
             echo "commitS=${commit:0:7}" >> $GITHUB_ENV
@@ -37,11 +40,12 @@ jobs:
           cd Build_${{ matrix.repoName }}_${{ matrix.branchName }}
           git checkout ${{ env.commit }}
           echo "tag=$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
-      - name: Compress Source Code
-        if: ${{ env.commit }}
-        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
-        run: |
-          zip -q -x ".git/*" -r source-${{ env.commitS }}.zip .
+
+    #   - name: Compress Source Code
+    #     if: ${{ env.commit }}
+    #     working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+    #     run: |
+    #       zip -q -x ".git/*" -r source-${{ env.commitS }}.zip .
 
       - name: Release Apk Sign
         if: ${{ env.commit }}
@@ -52,6 +56,7 @@ jobs:
           sed -i '$a\RELEASE_KEY_ALIAS=legado'            ./gradle.properties
           sed -i '$a\RELEASE_STORE_PASSWORD=gedoor_legado'       ./gradle.properties
           sed -i '$a\RELEASE_KEY_PASSWORD=gedoor_legado'         ./gradle.properties
+
       - name: Customization
         if: ${{ env.commit && (matrix.repoName == 'legado') }}
         working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
@@ -60,21 +65,23 @@ jobs:
           sed "/def version/c def version = \"${{ env.tag }}\"" app/build.gradle  -i
           echo "清空18PlusList.txt"
           echo "" > app/src/main/assets/18PlusList.txt
-      - name: Draft Release Note
-        if: ${{ env.commit }}
-        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
-        run: |
-          rm -rf apk/
-          mkdir -p apk/
-          lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
-          export LESSCHARSET=utf-8
-          if [ "${{ env.commit }}" == "${lastCommit}" ]; then
-            releaseNote=`git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2-`
-          else
-            releaseNote=`git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2-`
-          fi
-          echo "Draft Release Note is \n$releaseNote"
-          echo $releaseNote > apk/${{ matrix.userName }}-Release.log
+
+    #   - name: Draft Release Note
+    #     if: ${{ env.commit }}
+    #     working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+    #     run: |
+    #       rm -rf apk/
+    #       mkdir -p apk/
+    #       lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
+    #       export LESSCHARSET=utf-8
+    #       if [ "${{ env.commit }}" == "${lastCommit}" ]; then
+    #         releaseNote=`git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2-`
+    #       else
+    #         releaseNote=`git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2-`
+    #       fi
+    #       echo "Draft Release Note is \n$releaseNote"
+    #       echo $releaseNote > apk/${{ matrix.userName }}-Release.log
+
       - name: Set up JDK 17
         if: ${{ env.commit }}
         uses: actions/setup-java@v4
@@ -100,18 +107,19 @@ jobs:
             mv "$file" apk/${{ matrix.repoName }}_${{ matrix.userName }}_${{ env.tag }}_$i_Release.apk
             i=$((i + 1))
           done
-      - name: Release Note
-        if: ${{ env.commit }}
-        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
-        run: |
-          lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
-          export LESSCHARSET=utf-8
-          echo -e "Credit: [${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}](${{ env.upStream }}/tree/${{ matrix.branchName }})\nCommit: ${{ env.commit }}\nChangelog:" > apk/${{ matrix.userName }}-Release.log
-          if [ "${{ env.commit }}" == "${lastCommit}" ]; then
-            git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
-          else
-            git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
-          fi
+    #   - name: Release Note
+    #     if: ${{ env.commit }}
+    #     working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+    #     run: |
+    #       lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
+    #       export LESSCHARSET=utf-8
+    #       echo -e "Credit: [${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}](${{ env.upStream }}/tree/${{ matrix.branchName }})\nCommit: ${{ env.commit }}\nChangelog:" > apk/${{ matrix.userName }}-Release.log
+    #       if [ "${{ env.commit }}" == "${lastCommit}" ]; then
+    #         git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
+    #       else
+    #         git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
+    #       fi
+    #     continue-on-error: true
 
 
       - name: Upload App To Artifact
