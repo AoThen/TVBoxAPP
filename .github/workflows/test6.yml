@@ -1,0 +1,150 @@
+name: Build-Legado
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - userName: gedoor
+            repoName: legado
+            branchName: master
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check New Commit
+        run: |
+          upStream=https://github.com/${{ matrix.userName }}/${{ matrix.repoName }}
+          echo "upStream=$upStream" >> $GITHUB_ENV
+          commit=$(curl -sL $upStream/commits/${{ matrix.branchName }} |grep -o '/${{ matrix.userName }}/${{ matrix.repoName }}/commit/[a-z0-9]\+' |head -1 | cut -d\/ -f5)
+          if ! git log --oneline |grep -q "$commit"; then
+            echo "commit=$commit" >> $GITHUB_ENV
+            echo "commitS=${commit:0:7}" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout Source Code and Zip
+        if: ${{ env.commit }}
+        run: |
+          git clone ${{ env.upStream }} Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+          cd Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+          git checkout ${{ env.commit }}
+          echo "tag=$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
+      - name: Compress Source Code
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          zip -q -x ".git/*" -r source-${{ env.commitS }}.zip .
+
+      - name: Release Apk Sign
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          cp -f ${{ github.workspace }}/.github/workflows/legado.jks app/legado.jks
+          sed -i '$a\RELEASE_STORE_FILE=./legado.jks'     ./gradle.properties
+          sed -i '$a\RELEASE_KEY_ALIAS=legado'            ./gradle.properties
+          sed -i '$a\RELEASE_STORE_PASSWORD=gedoor_legado'       ./gradle.properties
+          sed -i '$a\RELEASE_KEY_PASSWORD=gedoor_legado'         ./gradle.properties
+      - name: Customization
+        if: ${{ env.commit && (matrix.repoName == 'legado') }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          echo "统一版本号"
+          sed "/def version/c def version = \"${{ env.tag }}\"" app/build.gradle  -i
+          echo "清空18PlusList.txt"
+          echo "" > app/src/main/assets/18PlusList.txt
+      - name: Draft Release Note
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          rm -rf apk/
+          mkdir -p apk/
+          lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
+          export LESSCHARSET=utf-8
+          if [ "${{ env.commit }}" == "${lastCommit}" ]; then
+            releaseNote=`git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2-`
+          else
+            releaseNote=`git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2-`
+          fi
+          echo "Draft Release Note is \n$releaseNote"
+          echo $releaseNote > apk/${{ matrix.userName }}-Release.log
+      - name: Set up JDK 17
+        if: ${{ env.commit }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Setup Gradle
+        if: ${{ env.commit }}
+        uses: gradle/gradle-build-action@v2
+      - name: Build Release With Gradle
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleAppRelease --build-cache --parallel --daemon --warning-mode all
+      - name: Prepare App
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          i=1
+          for file in `find ~ -name "*.apk" -print`; do
+            echo "i = $i, file name is $file"
+            mv "$file" apk/${{ matrix.repoName }}_${{ matrix.userName }}_${{ env.tag }}_$i_Release.apk
+            i=$((i + 1))
+          done
+      - name: Release Note
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
+          export LESSCHARSET=utf-8
+          echo -e "Credit: [${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}](${{ env.upStream }}/tree/${{ matrix.branchName }})\nCommit: ${{ env.commit }}\nChangelog:" > apk/${{ matrix.userName }}-Release.log
+          if [ "${{ env.commit }}" == "${lastCommit}" ]; then
+            git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
+          else
+            git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
+          fi
+
+
+      - name: Upload App To Artifact
+        uses: actions/upload-artifact@main
+        if: ${{ env.commit }}
+        with:
+          name: ${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}
+          path: |
+            Build_${{ matrix.repoName }}_${{ matrix.branchName }}/apk/*
+
+    #   - name: Release and Upload Assets(release area)
+    #     uses: softprops/action-gh-release@v1
+    #     if: ${{ env.commit }}
+    #     with:
+    #       name: ${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}
+    #       tag_name: ${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}
+    #       body_path: Build_${{ matrix.repoName }}_${{ matrix.branchName }}/apk/${{ matrix.userName }}-Release.log
+    #       files: |
+    #         Build_${{ matrix.repoName }}_${{ matrix.branchName }}/apk/*
+    #         Build_${{ matrix.repoName }}_${{ matrix.branchName }}/source-${{ env.commitS }}.zip
+    #     env:
+    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   - name: Push to master
+    #     if: ${{ env.commit }}
+    #     run: |
+    #       sed -i '/url =/d' ./.git/config
+    #       git config --local user.name "github-actions[bot]"
+    #       git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    #       git remote set-url --add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+    #       git status
+    #       git pull --rebase
+    #       sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}\/${{ matrix.branchName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
+    #       rm -rf Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+    #       git add --all
+    #       git commit -m "${{ matrix.repoName }}_${{ matrix.userName }}_${{ env.tag }}_${{ env.commit }}"
+    #       git push -u -f origin main
