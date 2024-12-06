@@ -38,20 +38,25 @@ jobs:
           - userName: xinyi1984
             repoName: TV 
             branchName: fongmi
+            java_ver: 17
           # - userName: FongMi
           #   repoName: TV
           #   branchName: fongmi
-            java_ver: 17
+          # java_ver: 17
+          #无法编译
+
           - userName: mlabalabala
             repoName: box
             branchName: main
-          - userName: chengxue2020
-            repoName: takagen99
-            branchName: main
-            java_ver: 17
+          # - userName: chengxue2020
+          #   repoName: takagen99
+          #   branchName: main
+          #   java_ver: 17
+          #会闪退
           # - userName: chengxue2020
           #   repoName: q215613905-Tbox
           #   branchName: main
+          #无法编译
     steps:
       - name: Checkout
         uses: actions/checkout@v4
