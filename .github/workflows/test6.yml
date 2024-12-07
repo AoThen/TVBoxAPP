@@ -101,6 +101,8 @@ jobs:
         if: ${{ env.commit }}
         working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
         run: |
+          rm -rf apk/
+          mkdir -p apk/
           i=1
           for file in `find ~ -name "*.apk" -print`; do
             echo "i = $i, file name is $file"
