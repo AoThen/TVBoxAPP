@@ -39,6 +39,7 @@ jobs:
             repoName: TV 
             branchName: fongmi
             java_ver: 17
+            
           #无法编译
           # - userName: FongMi
           #   repoName: TV
@@ -48,6 +49,7 @@ jobs:
           - userName: mlabalabala
             repoName: box
             branchName: main
+
           #会闪退
           # - userName: chengxue2020
           #   repoName: takagen99
@@ -88,6 +90,9 @@ jobs:
           git checkout ${{ env.commit }}
           echo "tag=$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
           echo "tagx=${{ matrix.userName }}-${{ matrix.repoName }}-$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
+          if [ "${{ matrix.userName }}" == "xinyi1984" && ${{ matrix.repoName }} == "TV" && ${{ matrix.branchName }} == "fongmi" ]; then
+            sed -i 's|/home/runner/work/TVBox-TV/TVBox-TV|${{ github.workspace }}|g' settings.gradle
+          fi
 
       - name: Extra Modify
         if: ${{ env.commit }}
@@ -193,7 +198,7 @@ jobs:
             # 移动并重命名文件
             mv "$file" "apk/$new_base"
           done
-          mv sourceCode-${{ env.commitS }}.* apk/
+          # mv sourceCode-${{ env.commitS }}.* apk/
       - name: Release Note
         if: ${{ env.commit }}
         working-directory: TVBoxOSC
@@ -205,10 +210,16 @@ jobs:
             echo $lastCommit
             export LESSCHARSET=utf-8
             echo -e "Credit: [${{ matrix.userName }}](${{ env.upStream }})\nCommit: ${{ env.commit }}\nChangelog:\n\`\`\`" > apk/${{ matrix.userName }}-Release.log
-            if [ "${{ env.commit }}" == "${lastCommit}" ]; then
-              COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
+            if [ -z "$lastCommit" ]; then
+                # lastCommit 为空，新增到 README.md
+                lastCommit=${{ env.commit }}
+                echo "- [${{ matrix.userName }}/${{ matrix.repoName }}/tree/${{ matrix.branchName }}](https://github.com/${{ matrix.userName }}/${{ matrix.repoName }}/tree/${{ matrix.branchName }}) (Updated: ${{ env.commit }})" >> ${{ github.workspace }}/README.md
             else
-              COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
+              if [ "${{ env.commit }}" == "${lastCommit}" ]; then
+                COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
+              else
+                COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
+              fi
             fi
 
             echo $COMMIT_MESSAGE
