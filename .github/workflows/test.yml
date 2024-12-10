@@ -205,19 +205,21 @@ jobs:
         if: ${{ env.commit }}
         working-directory: TVBoxOSC
         run: |
-            lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
-            export LESSCHARSET=utf-8
-            echo -e "Credit: [${{ matrix.userName }}](${{ env.upStream }})\nCommit: ${{ env.commit }}\nChangelog:\n\`\`\`" > apk/${{ matrix.userName }}-Release.log
-            if [ -z "$lastCommit" ]; then
-                # lastCommit 为空，新增到 README.md
+
+            if grep -q "${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md; then
+                lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
+            else
                 lastCommit=${{ env.commit }}
                 echo "- [${{ matrix.userName }}/${{ matrix.repoName }}/tree/${{ matrix.branchName }}](https://github.com/${{ matrix.userName }}/${{ matrix.repoName }}/tree/${{ matrix.branchName }}) (Updated: ${{ env.commit }})" >> ${{ github.workspace }}/README.md
+            fi
+
+            export LESSCHARSET=utf-8
+            echo -e "Credit: [${{ matrix.userName }}](${{ env.upStream }})\nCommit: ${{ env.commit }}\nChangelog:\n\`\`\`" > apk/${{ matrix.userName }}-Release.log
+
+            if [ "${{ env.commit }}" == "${lastCommit}" ]; then
+              COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
             else
-              if [ "${{ env.commit }}" == "${lastCommit}" ]; then
-                COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
-              else
-                COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
-              fi
+              COMMIT_MESSAGE=$(git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- )
             fi
 
             echo $COMMIT_MESSAGE
