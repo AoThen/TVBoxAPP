@@ -18,7 +18,7 @@ on:
         required: false
         type: boolean
       testOption:
-        description: "arm64支持，不支持ijk解码"
+        description: "arm64支持 不支持ijk解码"
         required: false
         type: boolean
 jobs:
@@ -31,10 +31,13 @@ jobs:
           - userName: q215613905
             repoName: TVBoxOS
             branchName: main
+
           - userName: takagen99
             repoName: Box
             branchName: main
             java_ver: 17
+
+          #待修复
           # - userName: xinyi1984
           #   repoName: TV 
           #   branchName: fongmi
@@ -55,14 +58,17 @@ jobs:
           #   repoName: takagen99
           #   branchName: main
           #   java_ver: 17
+
           #无法编译
           # - userName: chengxue2020
           #   repoName: q215613905-Tbox
           #   branchName: main
+          #   java_ver: 17
 
-          # - userName: AoThen
-          #   repoName: TVBoxOS
-          #   branchName: dev
+          #自定义
+          - userName: AoThen
+            repoName: TVBoxOS
+            branchName: dev
 
           - userName: AoThen
             repoName: Box
@@ -202,9 +208,9 @@ jobs:
             base=$(basename "$file")
             # 如果文件是 TVBox_ 开头
             if [[ "$base" == TVBox_* ]]; then
-              new_base=$(echo "$base" | sed "s/release/${{ matrix.userName }}_${{ env.tag }}/")
+              new_base=$(echo "$base" | sed "s/release/${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}/")
             else
-              new_base="TVBox_${{ matrix.userName }}_${{ env.tag }}.apk"
+              new_base="TVBox_${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}.apk"
             fi
             # 移动并重命名文件
             mv "$file" "apk/$new_base"
@@ -262,7 +268,14 @@ jobs:
           git remote set-url --add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git pull --rebase
           # sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
-          sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
+
+
+          if grep -q "${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md; then
+              sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
+          else
+              echo "- [${{ matrix.userName }}/${{ matrix.repoName }}/tree/${{ matrix.branchName }}](https://github.com/${{ matrix.userName }}/${{ matrix.repoName }}/tree/${{ matrix.branchName }}) (Updated: ${{ env.commit }})" >> ${{ github.workspace }}/README.md
+          fi
+
           git add README.md
           git commit -m "${{ matrix.userName }}-${{ matrix.repoName }}-${{ matrix.branchName }} » ${{ env.commit }} update at $(TZ='Asia/Shanghai' date +%Y-%m-%d)"
           #git commit -m "${{ env.commit }}"
@@ -309,3 +322,10 @@ jobs:
         uses: AoThen/delete-tags-without-release-action@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - uses: AoThen/delete-older-releases@master
+      #   with:
+      #     keep_latest: 3
+      #     delete_expired_data: 10 # Optional parameters
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
