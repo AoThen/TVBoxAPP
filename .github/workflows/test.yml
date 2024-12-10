@@ -67,6 +67,7 @@ jobs:
           - userName: AoThen
             repoName: Box
             branchName: dev
+            java_ver: 17
 
     steps:
       - name: Checkout
@@ -250,16 +251,6 @@ jobs:
         run: |
           echo "commit=" >> $GITHUB_ENV
 
-      - name: Release APP
-        uses: softprops/action-gh-release@v2
-        if: ${{ env.commit }}
-        with:
-          name: ${{ env.tagx }}
-          tag_name: ${{ env.tagx }}
-          body_path: TVBoxOSC/apk/${{ matrix.userName }}-Release.log
-          files: |
-            TVBoxOSC/apk/*.apk
-
       - name: Push to main
         if: ${{ env.commit }}
         run: |
@@ -288,7 +279,21 @@ jobs:
       #     git add README.md
       #     git commit -m "${{ matrix.userName }}-${{ matrix.repoName }}-${{ matrix.branchName }} » ${{ env.commit }} update at $(TZ='Asia/Shanghai' date +%Y-%m-%d)"
       #     git push -f "https://${{ secrets.NAME }}:${{ github.token }}@github.com/${{ github.repository }}.git" main
-      #  continue-on-error: true
+      #  continue-on-error: true       
+      
+
+      - name: Release APP
+        uses: softprops/action-gh-release@v2
+        if: ${{ env.commit }}
+        with:
+          name: ${{ env.tagx }}
+          tag_name: ${{ env.tagx }}
+          body_path: TVBoxOSC/apk/${{ matrix.userName }}-Release.log
+          files: |
+            TVBoxOSC/apk/*.apk
+
+
+
         
   clean:
     needs: build
