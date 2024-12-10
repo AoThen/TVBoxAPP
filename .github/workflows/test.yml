@@ -206,7 +206,6 @@ jobs:
         working-directory: TVBoxOSC
         run: |
             lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
-            echo $lastCommit
             export LESSCHARSET=utf-8
             echo -e "Credit: [${{ matrix.userName }}](${{ env.upStream }})\nCommit: ${{ env.commit }}\nChangelog:\n\`\`\`" > apk/${{ matrix.userName }}-Release.log
             if [ -z "$lastCommit" ]; then
@@ -222,6 +221,7 @@ jobs:
             fi
 
             echo $COMMIT_MESSAGE
+
             echo "$COMMIT_MESSAGE" >> apk/${{ matrix.userName }}-Release.log
             echo -e '\n```' >> apk/${{ matrix.userName }}-Release.log
 
