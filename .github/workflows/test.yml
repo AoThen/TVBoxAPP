@@ -158,6 +158,7 @@ jobs:
           sed -i '$a\RELEASE_KEY_ALIAS=TVBoxOSC'            ./gradle.properties
           sed -i '$a\RELEASE_STORE_PASSWORD=TVBoxOSC'       ./gradle.properties
           sed -i '$a\RELEASE_KEY_PASSWORD=TVBoxOSC'         ./gradle.properties
+
       - uses: actions/setup-java@v4
         if: ${{ matrix.java_ver }}
         with:
@@ -267,6 +268,17 @@ jobs:
           git push -u -f origin main
           #continue-on-error: true 是因为 git commit 会失败也是预期的，这个步骤可以忽略失败。加上这个命令就可以在这个步骤失败的时候，不会影响其他步骤
         continue-on-error: true
+
+      # - name: UPDATE README.md
+      #   if: ${{ env.commit }}
+      #   run: |
+      #     git config --local user.name ${{ secrets.NAME }}
+      #     git config --local user.email ${{ secrets.EMAIL }}
+      #     sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
+      #     git add README.md
+      #     git commit -m "${{ env.commit }}"
+      #     git push -f "https://${{ secrets.NAME }}:${{ github.token }}@github.com/${{ github.repository }}.git" main
+      #  continue-on-error: true
         
   clean:
     needs: build
@@ -277,3 +289,8 @@ jobs:
         with:
           retain_days: 3
           keep_minimum_runs: 5
+
+      - name: Delete tags
+        uses: AoThen/delete-tags-without-release-action@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
