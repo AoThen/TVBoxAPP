@@ -1,4 +1,4 @@
-name: Build APP
+name: Build TVBOX APP
 
 on:
   # schedule:
@@ -59,8 +59,13 @@ jobs:
           # - userName: chengxue2020
           #   repoName: q215613905-Tbox
           #   branchName: main
+
+          # - userName: AoThen
+          #   repoName: TVBoxOS
+          #   branchName: dev
+
           - userName: AoThen
-            repoName: TVBoxOS
+            repoName: Box
             branchName: dev
 
     steps:
@@ -89,7 +94,7 @@ jobs:
           cd TVBoxOSC
           git checkout ${{ env.commit }}
           echo "tag=$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
-          echo "tagx=${{ matrix.userName }}-${{ matrix.repoName }}-$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
+          echo "tagx=${{ matrix.userName }}-${{ matrix.repoName }}-${{ matrix.branchName }}-$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
           if [ "${{ matrix.userName }}" == "xinyi1984" && ${{ matrix.repoName }} == "TV" && ${{ matrix.branchName }} == "fongmi" ]; then
             sed -i 's|/home/runner/work/TVBox-TV/TVBox-TV|${{ github.workspace }}|g' settings.gradle
           fi
@@ -114,6 +119,10 @@ jobs:
           elif [ "${{ matrix.userName }}" == "xinyi1984" ]; then
             # 进行 sed 修改
             sed -i 's/\.concat(buildTime())/ +\"${{ env.tag }}\"/g' app/build.gradle 
+          elif [ "${{ matrix.userName }}" == "AoThen" ]; then
+            # 进行 sed 修改
+            sed -i 's/\.concat(buildTime())/ +\"${{ env.tag }}\"/g' app/build.gradle 
+            sed -i "/android:text=/s#=\"#=\"${{ env.tagx }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
           else
              sed -i "/versionName/s#[0-9a-zA-Z_\.\'\"-]\+\$#\'${{ env.tag }}\'#" app/build.gradle
              sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
@@ -263,8 +272,9 @@ jobs:
           git pull --rebase
           # sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
           sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
-          git add --all
-          git commit -m "${{ env.commit }}"
+          git add README.md
+          git commit -m "${{ matrix.userName }}-${{ matrix.repoName }}-${{ matrix.branchName }} » ${{ env.commit }} update at $(TZ='Asia/Shanghai' date +%Y-%m-%d)"
+          #git commit -m "${{ env.commit }}"
           git push -u -f origin main
           #continue-on-error: true 是因为 git commit 会失败也是预期的，这个步骤可以忽略失败。加上这个命令就可以在这个步骤失败的时候，不会影响其他步骤
         continue-on-error: true
@@ -276,7 +286,7 @@ jobs:
       #     git config --local user.email ${{ secrets.EMAIL }}
       #     sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
       #     git add README.md
-      #     git commit -m "${{ env.commit }}"
+      #     git commit -m "${{ matrix.userName }}-${{ matrix.repoName }}-${{ matrix.branchName }} » ${{ env.commit }} update at $(TZ='Asia/Shanghai' date +%Y-%m-%d)"
       #     git push -f "https://${{ secrets.NAME }}:${{ github.token }}@github.com/${{ github.repository }}.git" main
       #  continue-on-error: true
         
