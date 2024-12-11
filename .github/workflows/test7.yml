@@ -1,8 +1,8 @@
 
-name: Build-FongMi-TVBox
+name: Build-FongMi-TVBox(失败)
 
 on:
-  push:
+  # push:
   workflow_dispatch:
 
 jobs:
