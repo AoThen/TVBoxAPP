@@ -16,3 +16,4 @@ This repo relies on the following third-party projects:
 - [chengxue2020/q215613905-Tbox](https://github.com/chengxue2020/q215613905-Tbox) (Updated: f64aad7789f20f49109de6be1916ee348dfb98bf)
 - [chengxue2020/takagen99](https://github.com/chengxue2020/takagen99) (Updated: df1eab3ce55af78654522bb41ae2cd8dbd0a15ab)
 
+- [AoThen/TVBoxOS/tree/dev](https://github.com/AoThen/TVBoxOS/tree/dev) (Updated: 6283a8c05a54a43b51b8520234337e6d6de3d0f5)
