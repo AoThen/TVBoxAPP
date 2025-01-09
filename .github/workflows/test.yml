@@ -44,10 +44,10 @@ jobs:
           #   java_ver: 17
 
           #无法编译
-          # - userName: FongMi
-          #   repoName: TV
-          #   branchName: fongmi
-          # java_ver: 17
+          - userName: FongMi
+            repoName: TV
+            branchName: fongmi
+            java_ver: 17
 
           - userName: mlabalabala
             repoName: box

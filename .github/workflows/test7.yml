@@ -62,8 +62,16 @@ jobs:
 
 
       - name: Upload App To Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: FongMi-TVBox
           path: ${{ github.workspace }}/TVBox/*
 
+
+      - name: Release APP
+        uses: softprops/action-gh-release@v2
+        with:
+          name: FongMi-TVBox
+          tag_name: FongMi-TVBox
+          files: |
+            TVBox-TV/media/apk/*.apk
