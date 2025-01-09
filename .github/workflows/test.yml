@@ -46,7 +46,7 @@ jobs:
           #无法编译
           - userName: FongMi
             repoName: TV
-            branchName: fongmi
+            branchName: release
             java_ver: 17
 
           - userName: mlabalabala
