@@ -58,7 +58,7 @@ jobs:
             mv "$file" "TVBox/$new_base"
           done
 
-          ls apk/*.apk
+          ls TVBox/*.apk
 
 
       - name: Upload App To Artifact
