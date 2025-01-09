@@ -1,5 +1,5 @@
 
-name: Build-FongMi-TVBox(失败)
+name: Build-FongMi-TVBox-release
 
 on:
   # push:
@@ -49,11 +49,20 @@ jobs:
 
       - name: Prepare App
         run: |
-          mkdir -p ${{ github.workspace }}/apk/
-          find . -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
+          mkdir -p ${{ github.workspace }}/TVBox/
+          #find . -name "*.apk" -exec mv {} ${{ github.workspace }}/TVBox/ \;
+          
+          for file in `find ~ \( -name "*python*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -print`; do
+            base=$(basename "$file")
+            new_base="FongMi-TVBox_$base"
+            mv "$file" "TVBox/$new_base"
+          done
+
+          ls apk/*.apk
+
 
       - name: Upload App To Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: com.github.tvbox.fongmibox
-          path: ${{ github.workspace }}/TVBoxOS-FongMi/apk/*
+          name: FongMi-TVBox
+          path: ${{ github.workspace }}/TVBox/*
