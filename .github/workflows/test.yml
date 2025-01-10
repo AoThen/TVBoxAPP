@@ -28,14 +28,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - userName: q215613905
-          #   repoName: TVBoxOS
-          #   branchName: main
+          - userName: q215613905
+            repoName: TVBoxOS
+            branchName: main
 
-          # - userName: takagen99
-          #   repoName: Box
-          #   branchName: main
-          #   java_ver: 17
+          - userName: takagen99
+            repoName: Box
+            branchName: main
+            java_ver: 17
 
           - userName: FongMi
             repoName: TV
@@ -59,14 +59,14 @@ jobs:
           #   java_ver: 17
 
           #自定义
-          # - userName: AoThen
-          #   repoName: TVBoxOS
-          #   branchName: dev
+          - userName: AoThen
+            repoName: TVBoxOS
+            branchName: dev
 
-          # - userName: AoThen
-          #   repoName: Box
-          #   branchName: dev
-          #   java_ver: 17
+          - userName: AoThen
+            repoName: Box
+            branchName: dev
+            java_ver: 17
 
     steps:
       - name: Checkout
