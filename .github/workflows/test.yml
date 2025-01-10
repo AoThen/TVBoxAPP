@@ -28,30 +28,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - userName: q215613905
-            repoName: TVBoxOS
-            branchName: main
+          # - userName: q215613905
+          #   repoName: TVBoxOS
+          #   branchName: main
 
-          - userName: takagen99
-            repoName: Box
-            branchName: main
-            java_ver: 17
-
-          #待修复
-          # - userName: xinyi1984
-          #   repoName: TV 
-          #   branchName: fongmi
+          # - userName: takagen99
+          #   repoName: Box
+          #   branchName: main
           #   java_ver: 17
 
-          #无法编译
           - userName: FongMi
             repoName: TV
             branchName: release
             java_ver: 17
 
-          - userName: mlabalabala
-            repoName: box
-            branchName: main
+          # - userName: mlabalabala
+          #   repoName: box
+          #   branchName: main
 
           #会闪退
           # - userName: chengxue2020
@@ -66,14 +59,14 @@ jobs:
           #   java_ver: 17
 
           #自定义
-          - userName: AoThen
-            repoName: TVBoxOS
-            branchName: dev
+          # - userName: AoThen
+          #   repoName: TVBoxOS
+          #   branchName: dev
 
-          - userName: AoThen
-            repoName: Box
-            branchName: dev
-            java_ver: 17
+          # - userName: AoThen
+          #   repoName: Box
+          #   branchName: dev
+          #   java_ver: 17
 
     steps:
       - name: Checkout
@@ -203,7 +196,9 @@ jobs:
         run: |
           rm -rf apk/
           mkdir -p apk/
-          for file in `find ~ -name "*release*.apk" -print`; do
+          find ~ -name "*.apk"
+          #*release*.apk
+          for file in `find ~ -name "*.apk" -print`; do
             # 获取文件的基本名称
             base=$(basename "$file")
             # 如果文件是 TVBox_ 开头
