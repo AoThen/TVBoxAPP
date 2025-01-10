@@ -205,7 +205,7 @@ jobs:
             if [[ "$base" == TVBox_* ]]; then
               new_base=$(echo "$base" | sed "s/release/${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}/")
             else
-              new_base="TVBox_${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}.apk"
+              new_base="TVBox_${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}_$base.apk"
             fi
             # 移动并重命名文件
             mv "$file" "apk/$new_base"
