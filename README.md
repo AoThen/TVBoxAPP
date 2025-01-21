@@ -15,4 +15,4 @@ This repo relies on the following third-party projects:
 - [chengxue2020/takagen99](https://github.com/chengxue2020/takagen99) (Updated: df1eab3ce55af78654522bb41ae2cd8dbd0a15ab)
 - [AoThen/TVBoxOS/tree/dev](https://github.com/AoThen/TVBoxOS/tree/dev) (Updated: 6283a8c05a54a43b51b8520234337e6d6de3d0f5)
 - [AoThen/Box/tree/dev](https://github.com/AoThen/Box/tree/dev) (Updated: e956ec09eb4dac00b2750035ff046b4614d551df)
-- [FongMi/TV/tree/release](https://github.com/FongMi/TV/tree/release) (Updated: 3d8eb422774e44d5818237e9177b649152e00f15)
+- [FongMi/TV/tree/release](https://github.com/FongMi/TV/tree/release) (Updated: 2c55794e36a3521707967565eccbeb17018b8298)
