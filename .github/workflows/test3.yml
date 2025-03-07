@@ -1,0 +1,86 @@
+name: Build-Ghosten-Player
+
+on:
+  workflow_dispatch:
+  # push:
+
+jobs:
+  # 打包Android、iOS、Mac
+  build-mac-ios-android:
+    runs-on: macos-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      # 签出代码
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Source Code
+        run: |
+          git clone --depth 1 -b main https://github.com/GhostenEditor/Ghosten-Player.git Ghosten-Player
+
+
+      # 设置JAVA环境
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: "17.x"
+
+      # 设置Flutter
+      - name: Flutter action
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.4'
+
+
+      # 更新Flutter的packages
+      - name: Restore tv packages
+        run: |
+          cd Ghosten-Player
+          flutter pub get
+
+
+      # TV APK签名设置
+      - name: Create tv key.properties
+        run: |
+          echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" > Ghosten-Player/android/key.properties
+          echo "storePassword=TVBoxOSC" >> Ghosten-Player/android/key.properties
+          echo "keyPassword=TVBoxOSC" >> Ghosten-Player/android/key.properties
+          echo "keyAlias=TVBoxOSC" >> Ghosten-Player/android/key.properties
+
+      #打包 Android TV APK
+      - name: Build TV APK
+        run: |
+          cd Ghosten-Player
+          flutter build apk --release --split-per-abi
+
+      - name: Mv App
+        run: |
+            # 进入 APK 输出目录
+            cd Ghosten-Player
+            cd build/app/outputs/flutter-apk/
+
+            # 重命名 APK 文件
+            mv app-armeabi-v7a-release.apk Ghosten-Player_app-armeabi-v7a.apk
+            mv app-arm64-v8a-release.apk Ghosten-Player_app-arm64-v8a.apk
+            # mv app-x86-release.apk Ghosten-Player_app-x86.apk
+            # mv app-x86_64-release.apk Ghosten-Player_app-x86_64.apk
+
+      #上传TV APK至Artifacts
+      - name: Upload TV APK to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ghosten-Player_app
+          path: |
+            Ghosten-Player/build/app/outputs/flutter-apk/Ghosten-Player_app-armeabi-v7a.apk
+            Ghosten-Player/build/app/outputs/flutter-apk/Ghosten-Player_app-arm64-v8a.apk
+
+
+      - name: Delete workflow runs
+        uses: AoThen/delete-workflow-runs@main
+        with:
+          retain_days: 1
+          keep_minimum_runs: 3
