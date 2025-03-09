@@ -50,22 +50,22 @@ jobs:
       - name: Prepare App
         run: |
           mkdir -p ${{ github.workspace }}/TVBox/
-          #find . -name "*.apk" -exec mv {} ${{ github.workspace }}/TVBox/ \;
+          find . -name "*.apk" -exec mv {} ${{ github.workspace }}/TVBox/ \;
           
-          for file in `find ~ \( -name "*python*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -print`; do
-            base=$(basename "$file")
-            new_base="WakeOnLan_$base"
-            mv "$file" "TVBox/$new_base"
-          done
+        #   for file in `find ~ \( -name "*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -print`; do
+        #     base=$(basename "$file")
+        #     new_base="WakeOnLan_$base"
+        #     mv "$file" "TVBox/$new_base"
+        #   done
 
-          ls TVBox/*.apk
+        #   ls TVBox/*.apk
 
 
       - name: Upload App To Artifact
         uses: actions/upload-artifact@v4
         with:
           name: WakeOnLan
-          path: ${{ github.workspace }}/TVBox/*
+          path: ${{ github.workspace }}/TVBox/*.apk
 
 
     #   - name: Release APP
