@@ -22,7 +22,7 @@ jobs:
             git clone --depth 1 https://github.com/AoThen/WakeOnLan AoThen/WakeOnLan
             mv -f AoThen/WakeOnLan/* ./
             rm -rf AoThen/WakeOnLan
-            # rm -rf wear
+            rm -rf wear
 
       - name: Set up JDK and Gradle
         uses: actions/setup-java@v4
