@@ -45,7 +45,7 @@ jobs:
       - name: Build With Gradle
         run: |
           chmod +x gradlew
-          ./gradlew clean assembleRelease --parallel --daemon --warning-mode all --stacktrace
+          ./gradlew --parallel --max-workers=8 clean bundleDebug assembleDebug
 
       - name: Prepare App
         run: |
