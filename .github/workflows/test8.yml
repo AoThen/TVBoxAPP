@@ -22,6 +22,7 @@ jobs:
             git clone --depth 1 https://github.com/Florianisme/WakeOnLan TVBoxOS-FongMi
             mv -f TVBoxOS-FongMi/* ./
             rm -rf TVBoxOS-FongMi
+            rm -rf wear
 
       - name: Set up JDK and Gradle
         uses: actions/setup-java@v4
