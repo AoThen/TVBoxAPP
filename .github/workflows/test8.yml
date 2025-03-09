@@ -19,10 +19,10 @@ jobs:
 
       - name: Checkout Source Code
         run: |
-            git clone --depth 1 https://github.com/Florianisme/WakeOnLan TVBoxOS-FongMi
-            mv -f TVBoxOS-FongMi/* ./
-            rm -rf TVBoxOS-FongMi
-            rm -rf wear
+            git clone --depth 1 https://github.com/AoThen/WakeOnLan AoThen/WakeOnLan
+            mv -f AoThen/WakeOnLan/* ./
+            rm -rf AoThen/WakeOnLan
+            # rm -rf wear
 
       - name: Set up JDK and Gradle
         uses: actions/setup-java@v4
@@ -46,7 +46,7 @@ jobs:
       - name: Build With Gradle
         run: |
           chmod +x gradlew
-          ./gradlew --parallel --max-workers=8 clean bundleRelease assembleRelease
+          ./gradlew --parallel --max-workers=8 clean bundlerelease assemblerelease
 
 
       - name: Prepare App
