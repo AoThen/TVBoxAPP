@@ -32,7 +32,7 @@ jobs:
 
       - name: Release Apk Sign
         run: |
-        
+
             echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" >android/key.jks
             echo "storePassword=TVBoxOSC" >>android/key.jks
             echo "keyPassword=TVBoxOSC" >>android/key.jks
@@ -48,9 +48,6 @@ jobs:
     #     run: flutter build appbundle --release
 
       - name: Build Flutter (APK)
-        env:
-          KEY_PASSWORD: TVBoxOSC
-          ALIAS_PASSWORD: TVBoxOSC
         run: flutter build apk --release  --target-platform android-arm64
 
     #   - uses: actions/upload-artifact@v4
