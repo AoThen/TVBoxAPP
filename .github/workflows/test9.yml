@@ -33,7 +33,7 @@ jobs:
       - name: Release Apk Sign
         run: |
         
-            echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" >android/key.jks
+            cp ${{ github.workspace }}/.github/workflows/TVBoxOSC.jks android/key.jks
 
       - name: Get dependencies
         run: flutter pub get
