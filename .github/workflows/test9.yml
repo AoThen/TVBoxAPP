@@ -48,7 +48,7 @@ jobs:
         env:
           KEY_PASSWORD: TVBoxOSC
           ALIAS_PASSWORD: TVBoxOSC
-        run: flutter build apk --release   --split-per-abi
+        run: flutter build apk --release    --target-platform android-arm64
 
       - name: Mv App
         run: |
