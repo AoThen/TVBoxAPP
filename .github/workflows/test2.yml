@@ -27,14 +27,14 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: "13.x"
-          cache: "gradle"
+          java-version: "17"
+          cache: 'gradle'
 
       # 设置Flutter
       - name: Flutter action
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.9'
+          flutter-version: '3.27.x'
           cache: true 
 
 
