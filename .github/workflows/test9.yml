@@ -37,7 +37,7 @@ jobs:
                     signingConfig='aWYgKHByb2plY3QuaGFzUHJvcGVydHkoIkZPTkdNSUJPWF9TVE9SRV9GSUxFIikpIHtcCiAgICAgICAgICAgICAgICBzaWduaW5nQ29uZmlnIHNpZ25pbmdDb25maWdzLm15Q29uZmlnXAogICAgICAgICAgICB9XA=='
                     signingConfigs="$(echo "$signingConfigs" |base64 -d )"
                     signingConfig="$(echo "$signingConfig" |base64 -d )"
-                    sed -i -e "/defaultConfig {/i\\$signingConfigs " -e "/debug {/a\\$signingConfig " -e "/fongmibox {/a\\$signingConfig " app/build.gradle
+                    sed -i -e "/defaultConfig {/i\\$signingConfigs " -e "/debug {/a\\$signingConfig " -e "/fongmibox {/a\\$signingConfig " android/app/build.gradle
             echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" >android/key.properties
             echo "storePassword=TVBoxOSC" >>android/key.properties
             echo "keyPassword=TVBoxOSC" >>android/key.properties
