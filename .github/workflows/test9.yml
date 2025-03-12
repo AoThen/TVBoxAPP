@@ -1,0 +1,81 @@
+
+name: Build-simple-wake-on-lan
+
+on:
+  # push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Checkout Source Code
+        run: |
+            git clone --depth 1 https://github.com/AoThen/simple-wake-on-lan simple-wake-on-lan
+            mv -f simple-wake-on-lan/* ./
+            rm -rf simple-wake-on-lan
+
+      - name: Set up JDK and Gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: "12.x"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.10.5"
+          channel: 'stable'
+
+
+      - name: Release Apk Sign
+        run: |
+          cp -f ${{ github.workspace }}/.github/workflows/TVBoxOSC.jks android/key.jks
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Flutter (App Bundle)
+        env:
+          KEY_PASSWORD: TVBoxOSC
+          ALIAS_PASSWORD: TVBoxOSC
+        run: flutter build appbundle --release
+
+      - name: Build Flutter (APK)
+        env:
+          KEY_PASSWORD: TVBoxOSC
+          ALIAS_PASSWORD: TVBoxOSC
+        run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Android App Bundle
+          path: build/app/outputs/bundle/release
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Android APK
+          path: build/app/outputs/flutter-apk
+
+    #   - name: Prepare App
+    #     run: |
+    #         cd build/app/outputs/flutter-apk/
+
+    #         # 重命名 APK 文件
+    #         mv app-armeabi-v7a-release.apk pure_live_app-armeabi-v7a.apk
+    #         mv app-arm64-v8a-release.apk pure_live_app-arm64-v8a.apk
+
+    #         mkdir -p ${{ github.workspace }}/TVBox/
+    #         find . -name "*.apk" -exec mv {} ${{ github.workspace }}/TVBox/ \;
+          
+
+    #   - name: Upload App To Artifact
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: simple-wake-on-lan
+    #       path: ${{ github.workspace }}/TVBox/*.apk
+
+
