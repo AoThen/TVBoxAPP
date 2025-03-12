@@ -32,36 +32,31 @@ jobs:
 
       - name: Release Apk Sign
         run: |
-
-            signingConfigs='c2lnbmluZ0NvbmZpZ3Mge1wKICAgICAgICBpZiAocHJvamVjdC5oYXNQcm9wZXJ0eSgiRk9OR01JQk9YX1NUT1JFX0ZJTEUiKSkge1wKICAgICAgICAgICAgbXlDb25maWcge1wKICAgICAgICAgICAgICAgIHN0b3JlRmlsZSBmaWxlKEZPTkdNSUJPWF9TVE9SRV9GSUxFKVwKICAgICAgICAgICAgICAgIHN0b3JlUGFzc3dvcmQgRk9OR01JQk9YX1NUT1JFX1BBU1NXT1JEXAogICAgICAgICAgICAgICAga2V5QWxpYXMgRk9OR01JQk9YX0tFWV9BTElBU1wKICAgICAgICAgICAgICAgIGtleVBhc3N3b3JkIEZPTkdNSUJPWF9LRVlfUEFTU1dPUkRcCiAgICAgICAgICAgICAgICB2MVNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICB2MlNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICBlbmFibGVWM1NpZ25pbmcgPSB0cnVlXAogICAgICAgICAgICAgICAgZW5hYmxlVjRTaWduaW5nID0gdHJ1ZVwKICAgICAgICAgICAgfVwKICAgICAgICB9XAogICAgfVwKXA=='
-                    signingConfig='aWYgKHByb2plY3QuaGFzUHJvcGVydHkoIkZPTkdNSUJPWF9TVE9SRV9GSUxFIikpIHtcCiAgICAgICAgICAgICAgICBzaWduaW5nQ29uZmlnIHNpZ25pbmdDb25maWdzLm15Q29uZmlnXAogICAgICAgICAgICB9XA=='
-                    signingConfigs="$(echo "$signingConfigs" |base64 -d )"
-                    signingConfig="$(echo "$signingConfig" |base64 -d )"
-                    sed -i -e "/defaultConfig {/i\\$signingConfigs " -e "/debug {/a\\$signingConfig " -e "/fongmibox {/a\\$signingConfig " android/app/build.gradle
-            echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" >android/key.properties
-            echo "storePassword=TVBoxOSC" >>android/key.properties
-            echo "keyPassword=TVBoxOSC" >>android/key.properties
-            echo "keyAlias=TVBoxOSC" >>android/key.properties
+        
+            echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" >android/key.jks
+            echo "storePassword=TVBoxOSC" >>android/key.jks
+            echo "keyPassword=TVBoxOSC" >>android/key.jks
+            echo "keyAlias=TVBoxOSC" >>android/key.jks
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Flutter (App Bundle)
-        env:
-          KEY_PASSWORD: TVBoxOSC
-          ALIAS_PASSWORD: TVBoxOSC
-        run: flutter build appbundle --release
+    #   - name: Build Flutter (App Bundle)
+    #     env:
+    #       KEY_PASSWORD: TVBoxOSC
+    #       ALIAS_PASSWORD: TVBoxOSC
+    #     run: flutter build appbundle --release
 
       - name: Build Flutter (APK)
         env:
           KEY_PASSWORD: TVBoxOSC
           ALIAS_PASSWORD: TVBoxOSC
-        run: flutter build apk --release
+        run: flutter build apk --release  --target-platform android-arm64
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Android App Bundle
-          path: build/app/outputs/bundle/release
+    #   - uses: actions/upload-artifact@v4
+    #     with:
+    #       name: Android App Bundle
+    #       path: build/app/outputs/bundle/release
           
       - uses: actions/upload-artifact@v4
         with:
