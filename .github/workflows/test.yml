@@ -60,7 +60,7 @@ jobs:
 
           #自定义
           - userName: AoThen
-            repoName: TVBoxOS
+            repoName: ABox
             branchName: dev
 
           - userName: AoThen
