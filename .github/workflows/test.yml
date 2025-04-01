@@ -1,8 +1,8 @@
 name: Build TVBOX APP
 
 on:
-  # schedule:
-  #   - cron: 59 */8 * * *
+  schedule:
+    - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
       rebuild:
@@ -62,7 +62,7 @@ jobs:
           - userName: AoThen
             repoName: ABox
             branchName: dev
-            java_ver: 17
+            # java_ver: 17
 
           - userName: AoThen
             repoName: XBox
