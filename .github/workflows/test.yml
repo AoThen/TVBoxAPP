@@ -42,6 +42,11 @@ jobs:
             branchName: release
             java_ver: 17
 
+          - userName: AoThen
+            repoName: TV-APK
+            branchName: dev
+            java_ver: 17
+
           # - userName: mlabalabala
           #   repoName: box
           #   branchName: main
