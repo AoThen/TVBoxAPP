@@ -13,4 +13,4 @@ This repo relies on the following third-party projects:
 - [AoThen/ABox/tree/dev](https://github.com/AoThen/ABox/tree/dev) (Updated: 7b5f9c992fbbc97bc76a4bf30c8bc5d027c16d3f)
 - [AoThen/XBox/tree/dev](https://github.com/AoThen/XBox/tree/dev) (Updated: 0fd2ecbb4285be84bcc31fb414c532588715ef94)
 - [FongMi/TV/tree/release](https://github.com/FongMi/TV/tree/release) (Updated: d7eb6e9200af5942adb91c55135e70a864364a9f)
-- [AoThen/TV-APK/tree/dev](https://github.com/AoThen/TV-APK/tree/dev) (Updated: db404b35bf164139cba16299e11066a3a7613109)
+- [AoThen/TV-APK/tree/dev](https://github.com/AoThen/TV-APK/tree/dev) (Updated: 8e9e83e9d199cbe419d9bf5684fb23f033f2c13e)
