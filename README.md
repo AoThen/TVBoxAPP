@@ -12,5 +12,5 @@ This repo relies on the following third-party projects:
 - [mlabalabala/Box](https://github.com/mlabalabala/Box) (Updated: 8f013750839246b70b859a5dc4d289cd1f649835)
 - [AoThen/ABox/tree/dev](https://github.com/AoThen/ABox/tree/dev) (Updated: 978b48672fee5c2f94a04f673132038c82174bed)
 - [AoThen/XBox/tree/dev](https://github.com/AoThen/XBox/tree/dev) (Updated: 0fd2ecbb4285be84bcc31fb414c532588715ef94)
-- [FongMi/TV/tree/release](https://github.com/FongMi/TV/tree/release) (Updated: 51c33ceb2ddd68c1075ed29510ac66a3e9dcdd02)
+- [FongMi/TV/tree/release](https://github.com/FongMi/TV/tree/release) (Updated: 7795e41f8287facd54552e6f4214116bc4f596b5)
 - [AoThen/TV-APK/tree/dev](https://github.com/AoThen/TV-APK/tree/dev) (Updated: ead8a404afd3bcce10fdeac877575eca2b82213d)
