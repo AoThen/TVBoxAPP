@@ -10,7 +10,7 @@ This repo relies on the following third-party projects:
 - [q215613905/TVBoxOS/tree/main](https://github.com/q215613905/TVBoxOS/tree/main) (Updated: 704cd2658fbcaf38551228cb90bd9f766a0c9e72)
 - [xinyi1984/TV/tree/fongmi](https://github.com/xinyi1984/TV/tree/fongmi) (Updated: cb464b9ae4dffe515a5b23429718184ec3566d47)
 - [mlabalabala/Box](https://github.com/mlabalabala/Box) (Updated: 8f013750839246b70b859a5dc4d289cd1f649835)
-- [AoThen/ABox/tree/dev](https://github.com/AoThen/ABox/tree/dev) (Updated: 978b48672fee5c2f94a04f673132038c82174bed)
+- [AoThen/ABox/tree/dev](https://github.com/AoThen/ABox/tree/dev) (Updated: d457039bf465f96dbb5ba56f14293e26b0fb125b)
 - [AoThen/XBox/tree/dev](https://github.com/AoThen/XBox/tree/dev) (Updated: 0fd2ecbb4285be84bcc31fb414c532588715ef94)
 - [FongMi/TV/tree/release](https://github.com/FongMi/TV/tree/release) (Updated: 1d492d28a70f0ea91a3b9727ac0f6efb186aa8b7)
 - [AoThen/TV-APK/tree/dev](https://github.com/AoThen/TV-APK/tree/dev) (Updated: ead8a404afd3bcce10fdeac877575eca2b82213d)
