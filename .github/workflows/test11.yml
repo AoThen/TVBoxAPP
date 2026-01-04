@@ -46,6 +46,7 @@ jobs:
     #       sed -i '1i 'JKS_PATH=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks Makefile
     #       sed -i '1i export JKS_PASSWORD=TVBoxOSC' Makefile
 
+
         #   export JKS_PATH=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks
         #   export JKS_PASSWORD=TVBoxOSC
 
@@ -57,7 +58,7 @@ jobs:
 
 
       - name: Build APKs
-        run: make release-apk-arm64-v8a
+        run: make release-apk-arm64-v8a-apksigner
         env:
           SIGN_STORE_FILE: keystore.jks
           SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
