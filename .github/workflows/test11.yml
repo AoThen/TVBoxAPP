@@ -67,6 +67,7 @@ jobs:
           SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           JKS_PATH: kt.jksx
+          JKS_PASSWORD: TVBoxOSC
           JKS_PASSWORD_File: kd.txt
 
 
