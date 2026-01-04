@@ -31,16 +31,21 @@ jobs:
       - name: Clean
         run: make clean
 
-      - name: Release Apk Sign
+      - name: Decode Keystore
         run: |
-         signingConfigs='c2lnbmluZ0NvbmZpZ3Mge1wKICAgICAgICBpZiAocHJvamVjdC5oYXNQcm9wZXJ0eSgiRk9OR01JQk9YX1NUT1JFX0ZJTEUiKSkge1wKICAgICAgICAgICAgbXlDb25maWcge1wKICAgICAgICAgICAgICAgIHN0b3JlRmlsZSBmaWxlKEZPTkdNSUJPWF9TVE9SRV9GSUxFKVwKICAgICAgICAgICAgICAgIHN0b3JlUGFzc3dvcmQgRk9OR01JQk9YX1NUT1JFX1BBU1NXT1JEXAogICAgICAgICAgICAgICAga2V5QWxpYXMgRk9OR01JQk9YX0tFWV9BTElBU1wKICAgICAgICAgICAgICAgIGtleVBhc3N3b3JkIEZPTkdNSUJPWF9LRVlfUEFTU1dPUkRcCiAgICAgICAgICAgICAgICB2MVNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICB2MlNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICBlbmFibGVWM1NpZ25pbmcgPSB0cnVlXAogICAgICAgICAgICAgICAgZW5hYmxlVjRTaWduaW5nID0gdHJ1ZVwKICAgICAgICAgICAgfVwKICAgICAgICB9XAogICAgfVwKXA=='
-          signingConfig='aWYgKHByb2plY3QuaGFzUHJvcGVydHkoIkZPTkdNSUJPWF9TVE9SRV9GSUxFIikpIHtcCiAgICAgICAgICAgICAgICBzaWduaW5nQ29uZmlnIHNpZ25pbmdDb25maWdzLm15Q29uZmlnXAogICAgICAgICAgICB9XA=='
-          signingConfigs="$(echo "$signingConfigs" |base64 -d )"
-          signingConfig="$(echo "$signingConfig" |base64 -d )"
-          # sed -i -e "/defaultConfig {/i\\$signingConfigs " -e "/debug {/a\\$signingConfig " -e "/fongmibox {/a\\$signingConfig " app/build.gradle
-          # cp -f ${{ github.workspace }}/.github/workflows/TVBoxOSC.jks ./TVBoxOSC.jks
-          sed -i '1i 'JKS_PATH=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks Makefile
-          sed -i '1i export JKS_PASSWORD=TVBoxOSC' Makefile
+          mkdir -p app
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > app/keystore.jks
+
+    #   - name: Release Apk Sign
+    #     run: |
+    #      signingConfigs='c2lnbmluZ0NvbmZpZ3Mge1wKICAgICAgICBpZiAocHJvamVjdC5oYXNQcm9wZXJ0eSgiRk9OR01JQk9YX1NUT1JFX0ZJTEUiKSkge1wKICAgICAgICAgICAgbXlDb25maWcge1wKICAgICAgICAgICAgICAgIHN0b3JlRmlsZSBmaWxlKEZPTkdNSUJPWF9TVE9SRV9GSUxFKVwKICAgICAgICAgICAgICAgIHN0b3JlUGFzc3dvcmQgRk9OR01JQk9YX1NUT1JFX1BBU1NXT1JEXAogICAgICAgICAgICAgICAga2V5QWxpYXMgRk9OR01JQk9YX0tFWV9BTElBU1wKICAgICAgICAgICAgICAgIGtleVBhc3N3b3JkIEZPTkdNSUJPWF9LRVlfUEFTU1dPUkRcCiAgICAgICAgICAgICAgICB2MVNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICB2MlNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICBlbmFibGVWM1NpZ25pbmcgPSB0cnVlXAogICAgICAgICAgICAgICAgZW5hYmxlVjRTaWduaW5nID0gdHJ1ZVwKICAgICAgICAgICAgfVwKICAgICAgICB9XAogICAgfVwKXA=='
+    #       signingConfig='aWYgKHByb2plY3QuaGFzUHJvcGVydHkoIkZPTkdNSUJPWF9TVE9SRV9GSUxFIikpIHtcCiAgICAgICAgICAgICAgICBzaWduaW5nQ29uZmlnIHNpZ25pbmdDb25maWdzLm15Q29uZmlnXAogICAgICAgICAgICB9XA=='
+    #       signingConfigs="$(echo "$signingConfigs" |base64 -d )"
+    #       signingConfig="$(echo "$signingConfig" |base64 -d )"
+    #       # sed -i -e "/defaultConfig {/i\\$signingConfigs " -e "/debug {/a\\$signingConfig " -e "/fongmibox {/a\\$signingConfig " app/build.gradle
+    #       # cp -f ${{ github.workspace }}/.github/workflows/TVBoxOSC.jks ./TVBoxOSC.jks
+    #       sed -i '1i 'JKS_PATH=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks Makefile
+    #       sed -i '1i export JKS_PASSWORD=TVBoxOSC' Makefile
 
         #   export JKS_PATH=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks
         #   export JKS_PASSWORD=TVBoxOSC
@@ -54,6 +59,11 @@ jobs:
 
       - name: Build APKs
         run: make release-apk-arm64-v8a
+        env:
+          SIGN_STORE_FILE: app/keystore.jks
+          SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
 
       - name: Prepare App
