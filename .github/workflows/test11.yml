@@ -63,6 +63,8 @@ jobs:
           SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          JKS_PATH: keystore.jks
+          JKS_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
 
       - name: Prepare App
