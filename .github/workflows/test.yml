@@ -80,6 +80,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 7
+          keep_minimum_runs: 2
+
       - name: Check New Commit
         run: |
           upStream=https://github.com/${{ matrix.userName }}/${{ matrix.repoName }}
