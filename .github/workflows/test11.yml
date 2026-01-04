@@ -34,7 +34,7 @@ jobs:
       - name: Decode Keystore
         run: |
           echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
-          echo  ${{ secrets.KEY_PASSWORD }} > kd.txt
+          echo "${{ secrets.KEY_PASSWORD }}" > kd.txt
           chmod 600 kd.txt
 
     #   - name: Release Apk Sign
