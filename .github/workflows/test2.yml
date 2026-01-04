@@ -20,7 +20,7 @@ jobs:
 
       - name: Checkout Source Code
         run: |
-          git clone --depth 1 -b master https://github.com/liuchuancong/pure_live.git pure_live
+          git clone --depth 1 -b master https://github.com/liuchuancong/pure_live_TV.git pure_live_TV
 
 
       # 设置JAVA环境
@@ -41,44 +41,44 @@ jobs:
       # 更新Flutter的packages
       - name: Restore tv packages
         run: |
-          cd pure_live
+          cd pure_live_TV
           flutter pub get
 
 
       # TV APK签名设置
       - name: Create tv key.properties
         run: |
-          echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" > pure_live/android/key.properties
-          echo "storePassword=TVBoxOSC" >> pure_live/android/key.properties
-          echo "keyPassword=TVBoxOSC" >> pure_live/android/key.properties
-          echo "keyAlias=TVBoxOSC" >> pure_live/android/key.properties
+          echo "storeFile=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks" > pure_live_TV/android/key.properties
+          echo "storePassword=TVBoxOSC" >> pure_live_TV/android/key.properties
+          echo "keyPassword=TVBoxOSC" >> pure_live_TV/android/key.properties
+          echo "keyAlias=TVBoxOSC" >> pure_live_TV/android/key.properties
 
       #打包 Android TV APK
       - name: Build TV APK
         run: |
-          cd pure_live
+          cd pure_live_TV
           flutter build apk --release --split-per-abi
 
       - name: Mv App
         run: |
             # 进入 APK 输出目录
-            cd pure_live
+            cd pure_live_TV
             cd build/app/outputs/flutter-apk/
 
             # 重命名 APK 文件
-            mv app-armeabi-v7a-release.apk pure_live_app-armeabi-v7a.apk
-            mv app-arm64-v8a-release.apk pure_live_app-arm64-v8a.apk
-            # mv app-x86-release.apk pure_live_app-x86.apk
-            # mv app-x86_64-release.apk pure_live_app-x86_64.apk
+            mv app-armeabi-v7a-release.apk pure_live_TV_app-armeabi-v7a.apk
+            mv app-arm64-v8a-release.apk pure_live_TV_app-arm64-v8a.apk
+            # mv app-x86-release.apk pure_live_TV_app-x86.apk
+            # mv app-x86_64-release.apk pure_live_TV_app-x86_64.apk
 
       #上传TV APK至Artifacts
       - name: Upload TV APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: pure_live_app
+          name: pure_live_TV_app
           path: |
-            pure_live/build/app/outputs/flutter-apk/pure_live_app-armeabi-v7a.apk
-            pure_live/build/app/outputs/flutter-apk/pure_live_app-arm64-v8a.apk
+            pure_live_TV/build/app/outputs/flutter-apk/pure_live_TV_app-armeabi-v7a.apk
+            pure_live_TV/build/app/outputs/flutter-apk/pure_live_TV_app-arm64-v8a.apk
 
 
       - name: Delete workflow runs
