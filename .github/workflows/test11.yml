@@ -33,7 +33,9 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > keystore.jks
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
+          echo  ${{ secrets.KEY_PASSWORD }} > kd.txt
+          chmod 600 kd.txt
 
     #   - name: Release Apk Sign
     #     run: |
@@ -60,12 +62,12 @@ jobs:
       - name: Build APKs
         run: make release-apk-arm64-v8a-apksigner
         env:
-          SIGN_STORE_FILE: keystore.jks
+          SIGN_STORE_FILE: kt.jksx
           SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          JKS_PATH: keystore.jks
-          JKS_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          JKS_PATH: kt.jksx
+          JKS_PASSWORD_File: kd.txt
 
 
       - name: Prepare App
