@@ -1,0 +1,73 @@
+
+name: Build-tailscale
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Checkout Source Code
+        run: |
+            git clone --depth 1 https://github.com/AoThen/tailscale-android tailscale-android
+            mv -f tailscale-android/* ./
+            rm -rf tailscale-android
+
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
+        with:
+          go-version-file: "go.mod"
+      - name: Switch to Java 17 # Note: 17 is pre-installed on ubuntu-latest
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      # Clean should essentially be a no-op, but make sure that it works.
+      - name: Clean
+        run: make clean
+
+      - name: Release Apk Sign
+        run: |
+         signingConfigs='c2lnbmluZ0NvbmZpZ3Mge1wKICAgICAgICBpZiAocHJvamVjdC5oYXNQcm9wZXJ0eSgiRk9OR01JQk9YX1NUT1JFX0ZJTEUiKSkge1wKICAgICAgICAgICAgbXlDb25maWcge1wKICAgICAgICAgICAgICAgIHN0b3JlRmlsZSBmaWxlKEZPTkdNSUJPWF9TVE9SRV9GSUxFKVwKICAgICAgICAgICAgICAgIHN0b3JlUGFzc3dvcmQgRk9OR01JQk9YX1NUT1JFX1BBU1NXT1JEXAogICAgICAgICAgICAgICAga2V5QWxpYXMgRk9OR01JQk9YX0tFWV9BTElBU1wKICAgICAgICAgICAgICAgIGtleVBhc3N3b3JkIEZPTkdNSUJPWF9LRVlfUEFTU1dPUkRcCiAgICAgICAgICAgICAgICB2MVNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICB2MlNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICBlbmFibGVWM1NpZ25pbmcgPSB0cnVlXAogICAgICAgICAgICAgICAgZW5hYmxlVjRTaWduaW5nID0gdHJ1ZVwKICAgICAgICAgICAgfVwKICAgICAgICB9XAogICAgfVwKXA=='
+          signingConfig='aWYgKHByb2plY3QuaGFzUHJvcGVydHkoIkZPTkdNSUJPWF9TVE9SRV9GSUxFIikpIHtcCiAgICAgICAgICAgICAgICBzaWduaW5nQ29uZmlnIHNpZ25pbmdDb25maWdzLm15Q29uZmlnXAogICAgICAgICAgICB9XA=='
+          signingConfigs="$(echo "$signingConfigs" |base64 -d )"
+          signingConfig="$(echo "$signingConfig" |base64 -d )"
+          # sed -i -e "/defaultConfig {/i\\$signingConfigs " -e "/debug {/a\\$signingConfig " -e "/fongmibox {/a\\$signingConfig " app/build.gradle
+          cp -f ${{ github.workspace }}/.github/workflows/TVBoxOSC.jks app/TVBoxOSC.jks
+          export JKS_PATH=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks
+          export JKS_PASSWORD=TVBoxOSC
+
+        #   sed -i '$a\RELEASE_STORE_FILE=./TVBoxOSC.jks'     ./gradle.properties
+        #   sed -i '$a\RELEASE_KEY_ALIAS=TVBoxOSC'            ./gradle.properties
+        #   sed -i '$a\RELEASE_STORE_PASSWORD=TVBoxOSC'       ./gradle.properties
+        #   sed -i '$a\RELEASE_KEY_PASSWORD=TVBoxOSC'         ./gradle.properties
+
+
+      - name: Build APKs
+        run: make release-apk-arm64-v8a
+
+
+      - name: Prepare App
+        run: |
+          mkdir -p ${{ github.workspace }}/TVBox/
+          find . -name "*.apk" -exec mv {} ${{ github.workspace }}/TVBox/ \;
+          
+        #   for file in `find ~ \( -name "*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -print`; do
+        #     base=$(basename "$file")
+        #     new_base="tailscale-android_$base"
+        #     mv "$file" "TVBox/$new_base"
+        #   done
+
+        #   ls TVBox/*.apk
+
+
+      - name: Upload App To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tailscale-android
+          path: ${{ github.workspace }}/TVBox/*.apk
