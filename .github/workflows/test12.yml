@@ -59,18 +59,18 @@ jobs:
       - name: Checkout Source Code
         run: |
             git clone --depth 1 https://github.com/AoThen/joplin joplin-android
-            mv -f joplin-android/packages/app-mobile/* ./
+            mv -f joplin-android/* ./
             rm -rf joplin-android
 
 
       - name: Decode Keystore
         run: |
-          cd android
+          cd packages/app-mobile/android
       
           echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
-          echo "storeFile=${{ github.workspace }}/android/kt.jks" >> keystore.properties
+          echo "storeFile=${{ github.workspace }}packages/app-mobile/android/kt.jks" >> keystore.properties
 
           echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
          # echo "${{ secrets.KEY_PASSWORD }}" > kd.txt
@@ -112,11 +112,11 @@ jobs:
 
       - name: Prepare App
         run: |
-          cd android
+          cd packages/app-mobile/android
           ./gradlew assembleRelease
 
           mkdir -p ${{ github.workspace }}/TVBox/
-          find . -name "*arm64-v8a.apk" -exec mv {} ${{ github.workspace }}/TVBox/ \;
+          find . -name "*.apk" -exec mv {} ${{ github.workspace }}/TVBox/ \;
           
         #   for file in `find ~ \( -name "*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -print`; do
         #     base=$(basename "$file")
