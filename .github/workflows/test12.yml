@@ -2,6 +2,7 @@
 name: Build-joplin
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
@@ -36,15 +37,14 @@ jobs:
           distribution: 'temurin'
           java-version: '20'
           
-
-      # - uses: actions/setup-node@v6
-      #   with:
-      #     node-version: '24'
-      #     cache: 'yarn'
-
       - name: Install Yarn
         run: |
           corepack enable
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'yarn'
 
       - name: Install
         run:  yarn install
