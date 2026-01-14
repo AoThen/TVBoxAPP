@@ -34,7 +34,7 @@ jobs:
 
       - name: Checkout Source Code
         run: |
-            git clone  https://github.com/AoThen/joplin joplin-android
+            git clone  --depth 1 https://github.com/AoThen/joplin joplin-android
             mv -f joplin-android/* ./
             rm -rf joplin-android
           

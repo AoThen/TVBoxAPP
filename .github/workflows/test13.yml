@@ -1,0 +1,104 @@
+
+name: Build-bitwarden_arm64-v8a_android
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # - uses: actions/checkout@v4
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 1
+
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
+
+
+      - name: Configure JDK
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          distribution: "temurin"
+          java-version: 21
+
+
+
+      - name: Checkout Source Code
+        run: |
+            git clone  --depth 1 https://github.com/AoThen/bitwarden_arm64-v8a_android bitwarden
+            mv -f bitwarden/* ./
+            rm -rf bitwarden
+
+      - name: Configure Ruby
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # v1.257.0
+
+
+      - name: Install Fastlane
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Check
+        run: bundle exec fastlane check
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
+
+        #   cd packages/app-mobile/android
+        #   echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
+        #   echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+        #   echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+        #   echo "storeFile=${{ github.workspace }}packages/app-mobile/android/kt.jks" >> keystore.properties
+
+      - name: Build
+        env:
+          SIGN_STORE_FILE: ${{ github.workspace }}/kt.jksx
+          SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: bundle exec fastlane assemblesigningApks
+
+
+      - name: Prepare App
+        run: |
+          mkdir -p ${{ github.workspace }}/TVBox/
+          find . -name "*.apk" -exec mv {} ${{ github.workspace }}/TVBox/ \;
+        #   cd packages/app-mobile/android
+        #   ./gradlew assembleRelease
+
+        #   cd packages/app-mobile/android/app
+        #   APK_FILE="./build/outputs/apk/release/app-release.apk"
+        #   if test ! -f "$APK_FILE" ; then
+        #     echo "APK file not found."
+        #     exit 1
+        #   else
+        #     echo "APK file found at: $APK_FILE"
+        #   fi
+
+
+          
+        #   for file in `find ~ \( -name "*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -print`; do
+        #     base=$(basename "$file")
+        #     new_base="bitwarden_$base"
+        #     mv "$file" "TVBox/$new_base"
+        #   done
+
+        #   ls TVBox/*.apk
+
+      - name: Upload App To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitwarden
+          path: ${{ github.workspace }}/TVBox/*.apk
