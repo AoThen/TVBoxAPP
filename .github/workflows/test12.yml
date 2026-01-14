@@ -24,7 +24,12 @@ jobs:
         run: |
             sudo apt-get update || true
             sudo apt-get install -y libsecret-1-dev
-
+      - name: Checkout Source Code
+        run: |
+            git clone --depth 1 https://github.com/AoThen/joplin joplin-android
+            mv -f joplin-android/* ./
+            rm -rf joplin-android
+            
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -56,11 +61,7 @@ jobs:
       #     sed -i -- 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/' app/build.gradle
       #     ./gradlew assembleRelease
 
-      - name: Checkout Source Code
-        run: |
-            git clone --depth 1 https://github.com/AoThen/joplin joplin-android
-            mv -f joplin-android/* ./
-            rm -rf joplin-android
+
 
 
       - name: Decode Keystore
