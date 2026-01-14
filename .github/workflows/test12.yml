@@ -1,0 +1,134 @@
+
+name: Build-joplin
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 1
+
+     - name: Install Linux dependencies
+        run: |
+          sudo apt-get update || true
+          sudo apt-get install -y libsecret-1-dev
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '20'
+          
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'yarn'
+
+      - name: Install Yarn
+        run: |
+          corepack enable
+
+      - name: Install
+        run:  yarn install
+        env:
+          SKIP_ONENOTE_CONVERTER_BUILD: 1
+      
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet || true
+          sudo rm -rf /opt/ghc || true
+
+      # - name: Assemble Android Release
+      #   run: |
+      #     cd packages/app-mobile/android
+      #     sed -i -- 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/' app/build.gradle
+      #     ./gradlew assembleRelease
+
+      - name: Checkout Source Code
+        run: |
+            git clone --depth 1 https://github.com/AoThen/joplin joplin-android
+            mv -f joplin-android/packages/app-mobile/* ./
+            rm -rf joplin-android
+
+
+      - name: Decode Keystore
+        run: |
+          cd android
+      
+          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+          echo "storeFile=${{ github.workspace }}/android/kt.jks" >> keystore.properties
+
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
+         # echo "${{ secrets.KEY_PASSWORD }}" > kd.txt
+         # chmod 600 kd.txt
+
+    #   - name: Release Apk Sign
+    #     run: |
+    #      signingConfigs='c2lnbmluZ0NvbmZpZ3Mge1wKICAgICAgICBpZiAocHJvamVjdC5oYXNQcm9wZXJ0eSgiRk9OR01JQk9YX1NUT1JFX0ZJTEUiKSkge1wKICAgICAgICAgICAgbXlDb25maWcge1wKICAgICAgICAgICAgICAgIHN0b3JlRmlsZSBmaWxlKEZPTkdNSUJPWF9TVE9SRV9GSUxFKVwKICAgICAgICAgICAgICAgIHN0b3JlUGFzc3dvcmQgRk9OR01JQk9YX1NUT1JFX1BBU1NXT1JEXAogICAgICAgICAgICAgICAga2V5QWxpYXMgRk9OR01JQk9YX0tFWV9BTElBU1wKICAgICAgICAgICAgICAgIGtleVBhc3N3b3JkIEZPTkdNSUJPWF9LRVlfUEFTU1dPUkRcCiAgICAgICAgICAgICAgICB2MVNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICB2MlNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICBlbmFibGVWM1NpZ25pbmcgPSB0cnVlXAogICAgICAgICAgICAgICAgZW5hYmxlVjRTaWduaW5nID0gdHJ1ZVwKICAgICAgICAgICAgfVwKICAgICAgICB9XAogICAgfVwKXA=='
+    #       signingConfig='aWYgKHByb2plY3QuaGFzUHJvcGVydHkoIkZPTkdNSUJPWF9TVE9SRV9GSUxFIikpIHtcCiAgICAgICAgICAgICAgICBzaWduaW5nQ29uZmlnIHNpZ25pbmdDb25maWdzLm15Q29uZmlnXAogICAgICAgICAgICB9XA=='
+    #       signingConfigs="$(echo "$signingConfigs" |base64 -d )"
+    #       signingConfig="$(echo "$signingConfig" |base64 -d )"
+    #       # sed -i -e "/defaultConfig {/i\\$signingConfigs " -e "/debug {/a\\$signingConfig " -e "/fongmibox {/a\\$signingConfig " app/build.gradle
+    #       # cp -f ${{ github.workspace }}/.github/workflows/TVBoxOSC.jks ./TVBoxOSC.jks
+    #       sed -i '1i 'JKS_PATH=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks Makefile
+    #       sed -i '1i export JKS_PASSWORD=TVBoxOSC' Makefile
+
+
+        #   export JKS_PATH=${{ github.workspace }}/.github/workflows/TVBoxOSC.jks
+        #   export JKS_PASSWORD=TVBoxOSC
+
+
+        #   sed -i '$a\RELEASE_STORE_FILE=./TVBoxOSC.jks'     ./gradle.properties
+        #   sed -i '$a\RELEASE_KEY_ALIAS=TVBoxOSC'            ./gradle.properties
+        #   sed -i '$a\RELEASE_STORE_PASSWORD=TVBoxOSC'       ./gradle.properties
+        #   sed -i '$a\RELEASE_KEY_PASSWORD=TVBoxOSC'         ./gradle.properties
+
+
+      # - name: Build APKs
+      #   run: make release-apk-arm64-v8a-apksigner
+      #   env:
+      #     SIGN_STORE_FILE: kt.jksx
+      #     SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+      #     SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      #     SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      #     JKS_PATH: kt.jksx
+      #     JKS_PASSWORD: TVBoxOSC
+      #     JKS_PASSWORD_File: kd.txt
+
+
+      - name: Prepare App
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+          mkdir -p ${{ github.workspace }}/TVBox/
+          find . -name "*arm64-v8a.apk" -exec mv {} ${{ github.workspace }}/TVBox/ \;
+          
+        #   for file in `find ~ \( -name "*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -print`; do
+        #     base=$(basename "$file")
+        #     new_base="joplin-android_$base"
+        #     mv "$file" "TVBox/$new_base"
+        #   done
+
+        #   ls TVBox/*.apk
+
+
+      - name: Upload App To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: joplin-android
+          path: ${{ github.workspace }}/TVBox/*.apk
