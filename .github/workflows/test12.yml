@@ -24,22 +24,23 @@ jobs:
         run: |
             sudo apt-get update || true
             sudo apt-get install -y libsecret-1-dev
+
       - name: Checkout Source Code
         run: |
             git clone --depth 1 https://github.com/AoThen/joplin joplin-android
             mv -f joplin-android/* ./
             rm -rf joplin-android
-            
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '20'
           
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-          cache: 'yarn'
+      # - uses: actions/setup-node@v6
+      #   with:
+      #     node-version: '24'
+      #     cache: 'yarn'
 
       - name: Install Yarn
         run: |
