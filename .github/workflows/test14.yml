@@ -1,0 +1,91 @@
+
+name: Build-MaterialFiles
+
+on:
+  push:
+    paths:
+        - .github/workflows/test14.yml
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      # - uses: actions/checkout@v4
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 1
+
+      - name: Checkout Source Code
+        run: |
+            git clone  --depth 1 https://github.com/AoThen/MaterialFiles MaterialFiles_temp
+            mv -f MaterialFiles_temp/* ./
+            rm -rf MaterialFiles_temp
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+            distribution: 'temurin'
+            java-version: '21'
+
+    #   - name: Build with Gradle
+    #     run: ./gradlew assembleDebug lintVitalRelease
+
+
+      - name: Decode Keystore
+        run: |
+          cd 
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
+
+        #   cd packages/app-mobile/android
+        #   echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
+        #   echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+        #   echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+        #   echo "storeFile=${{ github.workspace }}packages/app-mobile/android/kt.jks" >> keystore.properties
+
+      - name: Build
+        env:
+          SIGN_STORE_FILE: kt.jksx
+          SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease
+
+
+      - name: Prepare App
+        run: |
+          mkdir -p ${{ github.workspace }}/OutAPK/
+          find . -name "*.apk" -exec mv {} ${{ github.workspace }}/OutAPK/ \;
+        #   cd packages/app-mobile/android
+        #   ./gradlew assembleRelease
+
+        #   cd packages/app-mobile/android/app
+        #   APK_FILE="./build/outputs/apk/release/app-release.apk"
+        #   if test ! -f "$APK_FILE" ; then
+        #     echo "APK file not found."
+        #     exit 1
+        #   else
+        #     echo "APK file found at: $APK_FILE"
+        #   fi
+
+
+          
+        #   for file in `find ~ \( -name "*.apk" -o -name "*java*.apk" \) -not -name "*x86*" -print`; do
+        #     base=$(basename "$file")
+        #     new_base="bitwarden_$base"
+        #     mv "$file" "OutAPK/$new_base"
+        #   done
+
+        #   ls OutAPK/*.apk
+
+      - name: Upload App To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MaterialFiles
+          path: ${{ github.workspace }}/OutAPK/*.apk
