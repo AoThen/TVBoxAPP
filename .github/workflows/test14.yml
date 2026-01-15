@@ -40,7 +40,7 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          cd 
+          cd app
           echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
 
         #   cd packages/app-mobile/android
@@ -60,6 +60,7 @@ jobs:
 
       - name: Prepare App
         run: |
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/MaterialFiles.apk
           mkdir -p ${{ github.workspace }}/OutAPK/
           find . -name "*.apk" -exec mv {} ${{ github.workspace }}/OutAPK/ \;
         #   cd packages/app-mobile/android
