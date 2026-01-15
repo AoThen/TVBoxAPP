@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
 
@@ -23,9 +23,9 @@ jobs:
 
       - name: Checkout Source Code
         run: |
-            git clone  --depth 1 https://github.com/AoThen/bitwarden_arm64-v8a_android bitwarden
-            mv -f bitwarden/* ./
-            rm -rf bitwarden
+            git clone  --depth 1 https://github.com/AoThen/bitwarden_arm64-v8a_android bitwarden_temp
+            mv -f bitwarden_temp/* ./
+            rm -rf bitwarden_temp
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
@@ -42,7 +42,7 @@ jobs:
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # v1.257.0
         with:
           ruby-version: '3.4.2'
-          # bundler-cache: true
+          bundler-cache: true
 
       - name: Install Fastlane
         run: |
