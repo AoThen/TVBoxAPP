@@ -51,7 +51,7 @@ jobs:
           echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
-          echo "storeFile=../kt.jksx" >> keystore.properties
+          echo "storeFile=kt.jksx" >> keystore.properties
 
       # cp keystore.properties app-k9mail/keystore.properties
       # cp keystore.properties app-thunderbird/keystore.properties
@@ -66,7 +66,7 @@ jobs:
 
       - name: build
         env:
-          SIGN_STORE_FILE: ../kt.jksx
+          SIGN_STORE_FILE: kt.jksx
           SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
