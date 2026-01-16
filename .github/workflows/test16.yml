@@ -64,13 +64,13 @@ jobs:
       #     SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       #   run: ./gradlew assembleRelease
 
-      - name: Prime configuration and dependency cache
+      - name: build
         env:
           SIGN_STORE_FILE: ../kt.jksx
           SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew build
+        run: ./gradlew assembleRelease
 
 
 
