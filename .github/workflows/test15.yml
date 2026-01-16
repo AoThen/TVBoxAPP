@@ -49,6 +49,8 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
           echo "storeFile=${{ github.workspace }}/kt.jksx" >> keystore.properties
+          cp keystore.properties app-k9mail/keystore.properties
+          cp keystore.properties app-thunderbird/keystore.properties
 
       # - name: Build
       #   env:
