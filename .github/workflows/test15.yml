@@ -44,14 +44,11 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          cd app
           echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
-
-        #   cd packages/app-mobile/android
-        #   echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
-        #   echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
-        #   echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
-        #   echo "storeFile=${{ github.workspace }}packages/app-mobile/android/kt.jks" >> keystore.properties
+          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+          echo "storeFile=${{ github.workspace }}/kt.jksx" >> keystore.properties
 
       # - name: Build
       #   env:
