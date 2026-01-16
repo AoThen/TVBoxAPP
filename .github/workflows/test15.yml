@@ -61,13 +61,13 @@ jobs:
       #     SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       #   run: ./gradlew assembleRelease
 
-      # - name: Prime configuration and dependency cache
-      #   env:
-      #     SIGN_STORE_FILE: ../kt.jksx
-      #     SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-      #     SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-      #     SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      #   run: ./gradlew --no-daemon help
+      - name: Prime configuration and dependency cache
+        env:
+          SIGN_STORE_FILE: ../kt.jksx
+          SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew --no-daemon help
 
       # - name: Assemble common
       #   run: ./gradlew :app-common:assemble
