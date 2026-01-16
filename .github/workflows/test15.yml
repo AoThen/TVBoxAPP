@@ -28,9 +28,9 @@ jobs:
             mv -f thunderbird-android_temp/* ./
             rm -rf thunderbird-android_temp
 
-      - name: Copy CI gradle.properties
-        shell: bash
-        run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+      # - name: Copy CI gradle.properties
+      #   shell: bash
+      #   run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
       - name: Set up JDK
         uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
