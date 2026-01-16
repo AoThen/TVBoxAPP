@@ -48,9 +48,10 @@ jobs:
           echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
-          echo "storeFile=${{ github.workspace }}/kt.jksx" >> keystore.properties
-          cp keystore.properties app-k9mail/keystore.properties
-          cp keystore.properties app-thunderbird/keystore.properties
+          echo "storeFile=../kt.jksx" >> keystore.properties
+
+      # cp keystore.properties app-k9mail/keystore.properties
+      # cp keystore.properties app-thunderbird/keystore.properties
 
       # - name: Build
       #   env:
@@ -61,6 +62,11 @@ jobs:
       #   run: ./gradlew assembleRelease
 
       - name: Prime configuration and dependency cache
+        env:
+          SIGN_STORE_FILE: ../kt.jksx
+          SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew --no-daemon help
 
       # - name: Assemble common
