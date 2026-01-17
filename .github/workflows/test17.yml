@@ -44,11 +44,11 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > app/kt.jksx
           echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
-          echo "storeFile=../kt.jksx" >> keystore.properties
+          echo "storeFile=kt.jksx" >> keystore.properties
 
 
       - name: build
