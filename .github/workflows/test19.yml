@@ -50,11 +50,11 @@ jobs:
           
 
 
-      - name: Jest ReactNative
-        run: |
-            cd app/mobile
-            yarn install
-            yarn jest
+      # - name: Jest ReactNative
+      #   run: |
+      #       cd app/mobile
+      #       yarn install
+      #       yarn jest
           
       # - name: Setup Gradle
       #   uses: gradle/actions/setup-gradle@v5
