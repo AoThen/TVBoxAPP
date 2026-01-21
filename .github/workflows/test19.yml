@@ -74,10 +74,10 @@ jobs:
         with:
             node-version: 20
           
-      - name: 安装依赖
-        run: |
-          cd app/mobile  # 进入 React Native 根目录
-          npm install    # 或 yarn install
+      # - name: 安装依赖
+      #   run: |
+      #     cd app/mobile  # 进入 React Native 根目录
+      #     npm install    # 或 yarn install
 
       - name: build
         env:
