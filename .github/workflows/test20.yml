@@ -64,7 +64,7 @@ jobs:
         run: |
           find . -name "*.apk" -exec du -h {} \;
           mkdir -p ${{ github.workspace }}/OutAPK/
-          find . -name "*release.apk" -exec mv {} ${{ github.workspace }}/OutAPK/ \;
+          find . -name "*release*.apk" -exec mv {} ${{ github.workspace }}/OutAPK/ \;
         #   cd packages/app-mobile/android
         #   ./gradlew assembleRelease
 
