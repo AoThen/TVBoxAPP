@@ -24,7 +24,7 @@ jobs:
 
       - name: Checkout Source Code
         run: |
-            git clone  --depth 1 https://github.com/AoThen/databag -b beta databag_temp
+            git clone  --depth 1 https://github.com/AoThen/databag -b bulid databag_temp
             mv -f databag_temp/* ./
             rm -rf databag_temp
 
