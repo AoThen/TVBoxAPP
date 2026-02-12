@@ -4,7 +4,7 @@ name: Build-databag1.6
 on:
   push:
     paths:
-        - .github/workflows/test19.yml
+        - .github/workflows/test19-2.yml
   workflow_dispatch:
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
           node-version: '18'
 
       - name: Install npm dependencies
-        working-directory: ./app/mobile
+        working-directory: ./app/client/mobile
         run: npm install --legacy-peer-deps
           
 
