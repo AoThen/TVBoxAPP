@@ -10,7 +10,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@main
 
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
