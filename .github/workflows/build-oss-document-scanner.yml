@@ -1,0 +1,130 @@
+name: Build-OSS-DocumentScanner
+
+on:
+#   push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - userName: AoThen
+            repoName: OSS-DocumentScanner
+            branchName: main
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 30
+          keep_minimum_runs: 1
+
+      - name: Check New Commit
+        run: |
+          upStream=https://github.com/${{ matrix.userName }}/${{ matrix.repoName }}
+          echo "upStream=$upStream" >> $GITHUB_ENV
+          commit=$(curl -sL $upStream/commits/${{ matrix.branchName }} |grep -o '/${{ matrix.userName }}/${{ matrix.repoName }}/commit/[a-z0-9]\+' |head -1 | cut -d\/ -f5)
+          if [[ -z "${commit}" ]]; then
+            commit=$(curl -s "https://api.github.com/repos/${{ matrix.userName }}/${{ matrix.repoName }}/commits/${{ matrix.branchName }}?per_page=1" | jq -r '.sha' )
+          fi
+          if ! git log --oneline |grep -q "$commit"; then
+            echo "commit=$commit" >> $GITHUB_ENV
+            echo "commitS=${commit:0:7}" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout Source Code and Submodules
+        if: ${{ env.commit }}
+        run: |
+          git clone --recurse-submodules --depth 1 ${{ env.upStream }} Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+          cd Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+          echo "tag=$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
+
+      - name: Download 3rd Party Libraries
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          curl -L -o android.zip https://github.com/ossappscollective/OSS-DocumentScanner/releases/download/dev_resources/android.zip
+          unzip -q android.zip -d .
+          rm -f android.zip
+
+      - name: Setup Signing Keystore
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        env:
+          SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$SIGNING_KEY_BASE64" | base64 -d > kt.jksx
+          echo "KEYSTORE_PATH=$(pwd)/kt.jksx" >> $GITHUB_ENV
+          echo "KEYSTORE_PASSWORD=$KEY_STORE_PASSWORD" >> $GITHUB_ENV
+          echo "KEYSTORE_ALIAS=$KEY_ALIAS" >> $GITHUB_ENV
+          echo "KEYSTORE_ALIAS_PASSWORD=$KEY_PASSWORD" >> $GITHUB_ENV
+
+      - name: Set up Node.js
+        if: ${{ env.commit }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up JDK 17
+        if: ${{ env.commit }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Install NativeScript CLI
+        if: ${{ env.commit }}
+        run: |
+          npm install -g nativescript cross-var
+
+      - name: Install Dependencies
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          corepack enable
+          yarn install
+
+      - name: Build arm64-v8a APK
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        env:
+          KEYSTORE_PATH: ${{ env.KEYSTORE_PATH }}
+          KEYSTORE_PASSWORD: ${{ env.KEYSTORE_PASSWORD }}
+          KEYSTORE_ALIAS: ${{ env.KEYSTORE_ALIAS }}
+          KEYSTORE_ALIAS_PASSWORD: ${{ env.KEYSTORE_ALIAS_PASSWORD }}
+          APP_ID: com.akylas.documentscanner
+          APP_BUILD_PATH: build/documentscanner
+          APP_RESOURCES: App_Resources/documentscanner
+        run: |
+          npm run build.android.production.fdroid
+
+      - name: Prepare App
+        if: ${{ env.commit }}
+        working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
+        run: |
+          rm -rf apk/
+          mkdir -p apk/
+          for file in `find build/documentscanner/android -name "*arm64-v8a*.apk" -print`; do
+            mv "$file" apk/DocumentScanner_${{ env.tag }}_arm64-v8a.apk
+          done
+          ls -la apk/
+
+      - name: Upload App To Artifact
+        uses: actions/upload-artifact@main
+        if: ${{ env.commit }}
+        with:
+          name: ${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}
+          path: |
+            Build_${{ matrix.repoName }}_${{ matrix.branchName }}/apk/*
