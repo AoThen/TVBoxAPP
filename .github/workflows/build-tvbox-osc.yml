@@ -177,9 +177,7 @@ jobs:
                 accessor="${dep//-/.}"
                 sed -i "/^    coreLibraryDesugaring libs.desugar/i\    implementation project(':media3-lib-${dep}')" app/build.gradle
               done
-              # 在 fork 的 DefaultRenderersFactory 中添加 setFfmpegAudioPrefer/setFfmpegVideoPrefer
-              sed -i '/^  @Override/i\  public DefaultRenderersFactory setFfmpegAudioPrefer(boolean prefer) { return this; }\n  public DefaultRenderersFactory setFfmpegVideoPrefer(boolean prefer) { return this; }\n' ../media/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/DefaultRenderersFactory.java
-              # 仅保留 debug view 的 sed（fork 的 PlayerView 没有这些方法）
+              # debug view 的 sed（fork 的 PlayerView 没有这些方法）
               sed -i 's/getPlayerView()\.isDebugViewVisible()/false/g' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
               sed -i 's/getPlayerView()\.toggleDebugView();/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
               sed -i 's/getPlayerView()\.hideDebugView();/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
