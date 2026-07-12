@@ -163,7 +163,11 @@ jobs:
               done
               # 移除 kotlin-android 插件（FongMi 项目已全局应用，避免重复添加）
               sed -i "/apply plugin: 'kotlin-android'/d" ../media/libraries/exoplayer/build.gradle
-              # 删除所有 test 依赖（release 构建不需要）
+              # 先删除多行 test 块（androidTestImplementation(project(...)) { ... }），避免 orphaned 行
+              for f in ../media/libraries/datasource/build.gradle ../media/libraries/exoplayer/build.gradle; do
+                sed -i '/androidTestImplementation(project(modulePrefix.*test-utils)) {/,/^[[:space:]]*}/d' "$f"
+              done
+              # 删除所有单行 test 依赖（release 构建不需要）
               for f in ../media/libraries/*/build.gradle; do
                 sed -i '/testImplementation/d' "$f"
                 sed -i '/androidTestImplementation/d' "$f"
