@@ -141,21 +141,18 @@ jobs:
               cp -r ${{ github.workspace }}/patches/fongmi/app/src/main/java/androidx/media3/exoplayer/source/preload/* app/src/main/java/androidx/media3/exoplayer/source/preload/
               cp -r ${{ github.workspace }}/patches/fongmi/app/src/main/java/androidx/media3/ui/PlayerSeekView.java app/src/main/java/androidx/media3/ui/
               cp -r ${{ github.workspace }}/patches/fongmi/app/src/main/java/androidx/media3/mpvplayer/* app/src/main/java/androidx/media3/mpvplayer/
-              # 在 settings.gradle 末尾添加 media3 fork 模块（完整列表，满足内部交叉引用）
+              # 在 settings.gradle 末尾添加 media3 fork 模块（仅必需模块，避免插件冲突）
               echo 'gradle.ext.androidxMediaSettingsDir = file("../media").absolutePath' >> settings.gradle
               echo 'gradle.ext.androidxMediaModulePrefix = "media3-"' >> settings.gradle
-              # kopli: moduleName=media3-lib-{hyphen}, dir=libraries/{underscore}
-              # eraldi: media3-test-utils → libraries/test_utils
+              # 模块名=media3-lib-{hyphen}, 目录=libraries/{underscore}
               for entry in \
-                "common:common" "common-ktx:common_ktx" "container:container" \
+                "common:common" \
                 "session:session" \
-                "exoplayer:exoplayer" "exoplayer-dash:exoplayer_dash" "exoplayer-hls:exoplayer_hls" \
-                "exoplayer-rtsp:exoplayer_rtsp" "exoplayer-smoothstreaming:exoplayer_smoothstreaming" \
-                "ui:ui" "ui-danmaku:ui_danmaku" "ui-leanback:ui_leanback" \
+                "exoplayer:exoplayer" \
+                "ui:ui" "ui-danmaku:ui_danmaku" \
                 "database:database" \
                 "datasource:datasource" "datasource-okhttp:datasource_okhttp" \
                 "extractor:extractor" \
-                "decoder:decoder" "decoder-ffmpeg:decoder_ffmpeg" "decoder-flac:decoder_flac" "decoder-vp9:decoder_vp9" \
               ; do
                 name="${entry%%:*}"
                 dir="${entry##*:}"
