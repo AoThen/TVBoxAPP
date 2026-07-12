@@ -142,6 +142,7 @@ jobs:
               cp -r ${{ github.workspace }}/patches/fongmi/app/src/main/java/androidx/media3/ui/PlayerSeekView.java app/src/main/java/androidx/media3/ui/
               cp -r ${{ github.workspace }}/patches/fongmi/app/src/main/java/androidx/media3/mpvplayer/* app/src/main/java/androidx/media3/mpvplayer/
               # 在 settings.gradle 末尾添加 media3 fork 模块
+              echo 'gradle.ext.androidxMediaSettingsDir = file("../media").absolutePath' >> settings.gradle
               for dep in common session ui exoplayer extractor datasource database datasource-okhttp; do
                 dir="${dep//-/_}"
                 echo "include ':media3-lib-${dep}'" >> settings.gradle
