@@ -127,9 +127,9 @@ jobs:
             sed -i 's/\.concat(buildTime())/ +\"${{ env.tag }}\"/g' app/build.gradle 
             # 目前关于页面没有合并我的分支
             sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
-  elif [ "${{ matrix.userName }}" == "FongMi" ] || [ "${{ matrix.repoName }}" == "TV-APK" ] ; then
-    sed -i 's/TeamNewPipe/teamnewpipe/g' app/build.gradle
-    sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle
+          elif [ "${{ matrix.userName }}" == "FongMi" ] || [ "${{ matrix.repoName }}" == "TV-APK" ] ; then
+            sed -i 's/TeamNewPipe/teamnewpipe/g' app/build.gradle
+            sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle
           elif [ "${{ matrix.userName }}" == "chengxue2020" ]; then
             echo '空'
           elif [ "${{ matrix.userName }}" == "mlabalabala" ]; then
