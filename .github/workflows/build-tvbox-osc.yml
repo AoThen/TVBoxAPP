@@ -180,7 +180,7 @@ jobs:
               # common_config.gradle 的 consumerProguardFiles 引用了不存在的 proguard-rules.txt
               sed -i "/consumerProguardFiles 'proguard-rules.txt'/d" ../media/common_config.gradle
               # fork 的 DefaultRenderersFactory 缺少 setFfmpegAudioPrefer/setFfmpegVideoPrefer（在文件末尾 } 前插入）
-              sed -i '$ i\  public DefaultRenderersFactory setFfmpegAudioPrefer(boolean prefer) { return this; }\n  public DefaultRenderersFactory setFfmpegVideoPrefer(boolean prefer) { return this; }\n' ../media/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/DefaultRenderersFactory.java
+              sed -i '$ i\  public DefaultRenderersFactory setFfmpegAudioPrefer(boolean prefer) { return this; }\n  public DefaultRenderersFactory setFfmpegVideoPrefer(boolean prefer) { return this; }\n  public DefaultRenderersFactory setEnableDv7HevcFallback(boolean enable) { return this; }\n' ../media/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/DefaultRenderersFactory.java
               # debug view 的 sed（fork 的 PlayerView 没有这些方法）
               sed -i 's/getPlayerView()\.isDebugViewVisible()/false/g' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
               sed -i 's/getPlayerView()\.toggleDebugView();/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
