@@ -39,19 +39,18 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          cd app
-          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
-          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
-          echo "storeFile=kt.jksx" >> keystore.properties
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > app/kt.jksx
+          echo "storeFile=app/kt.jksx" > signing.properties
+          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" >> signing.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> signing.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> signing.properties
 
       - name: Build
         env:
-          SIGN_STORE_FILE: kt.jksx
-          SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_FILE: app/kt.jksx
+          STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
 
