@@ -42,7 +42,7 @@ jobs:
 
           - userName: FongMi
             repoName: TV
-            branchName: release
+            branchName: fongmi
             java_ver: 17
 
           - userName: AoThen
