@@ -37,6 +37,7 @@ jobs:
           echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          sed -i 's/keyAlias = "TVBoxOSC"/keyAlias = "$System.env.KEY_ALIAS"/' android/app/build.gradle
 
       - name: Get dependencies
         run: flutter pub get
@@ -51,6 +52,7 @@ jobs:
         env:
           KEY_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           ALIAS_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: flutter build apk --release    --target-platform android-arm64
 
       - name: Mv App
