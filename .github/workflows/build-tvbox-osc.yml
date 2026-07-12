@@ -129,7 +129,7 @@ jobs:
             sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
           elif [ "${{ matrix.userName }}" == "FongMi" ] || [ "${{ matrix.repoName }}" == "TV-APK" ] ; then
             sed -i 's/TeamNewPipe/teamnewpipe/g' app/build.gradle
-            sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle
+            sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle || true
           elif [ "${{ matrix.userName }}" == "chengxue2020" ]; then
             echo '空'
           elif [ "${{ matrix.userName }}" == "mlabalabala" ]; then
@@ -197,7 +197,7 @@ jobs:
         if: ${{ env.commit && (matrix.repoName != 'TV-APK') }}
         working-directory: TVBoxOSC
         run: |
-          sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle
+          sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle || true
 
       - name: Setup Python local.properties
         if: ${{ env.commit && (matrix.repoName != 'TV-APK') }}
