@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -86,43 +86,15 @@ jobs:
 
       - name: Set up Android SDK
         if: ${{ env.commit }}
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls -la $ANDROID_HOME/
-          # 确保 cmdline-tools 可用
-          if [ ! -d "$ANDROID_HOME/cmdline-tools" ]; then
-            echo "Installing cmdline-tools..."
-            curl -Lo cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-            unzip -q cmdline-tools.zip -d /tmp/cmdline-tools
-            mkdir -p $ANDROID_HOME/cmdline-tools
-            mv /tmp/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
-            rm -f cmdline-tools.zip
-          fi
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-36" "build-tools;36.1.0" "ndk;27.3.13750724" > /dev/null 2>&1
+        uses: android-actions/setup-android@v3
 
       - name: Install NativeScript CLI
         if: ${{ env.commit }}
         run: |
-          npm install -g nativescript cross-var
-
-      - name: Debug Environment
-        if: ${{ env.commit }}
-        run: |
-          echo "=== Java ==="
-          java -version
-          echo "=== Gradle ==="
-          which gradle || echo "gradle not in PATH"
-          gradle --version 2>/dev/null || echo "gradle not available"
-          echo "=== ns ==="
-          which ns || echo "ns not in PATH"
-          ns --version 2>/dev/null || echo "ns version check failed"
-          echo "=== ANDROID_HOME ==="
-          echo "$ANDROID_HOME"
-          ls -la "$ANDROID_HOME/platforms/" 2>/dev/null || echo "no platforms dir"
-          ls -la "$ANDROID_HOME/build-tools/" 2>/dev/null || echo "no build-tools dir"
-          echo "=== ns doctor ==="
-          ns doctor android 2>&1 || echo "ns doctor failed"
+          npm i -g @akylas/nativescript-cli cross-var --ignore-scripts --legacy-peer-deps
+          ns package-manager set yarn2
+          ns usage-reporting disable
+          ns error-reporting disable
 
       - name: Install Dependencies
         if: ${{ env.commit }}
