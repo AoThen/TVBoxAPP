@@ -53,7 +53,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           ALIAS_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: flutter build apk --release    --target-platform android-arm64
+        run: flutter build apk --release --target-platform android-arm64 --split-per-abi
 
       - name: Mv App
         run: |
