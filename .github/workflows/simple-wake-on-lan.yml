@@ -48,6 +48,9 @@ jobs:
     #     run: flutter build appbundle --release
 
       - name: Build Flutter (APK)
+        env:
+          KEY_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          ALIAS_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: flutter build apk --release    --target-platform android-arm64
 
       - name: Mv App
