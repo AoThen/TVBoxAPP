@@ -1,0 +1,62 @@
+name: Build NekoBoxForAndroid
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-nekobox.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 1
+
+      - name: Checkout Source Code
+        run: |
+          git clone --depth 1 https://github.com/AoThen/NekoBoxForAndroid NekoBox_temp
+          mv -f NekoBox_temp/* ./
+          rm -rf NekoBox_temp
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Decode Release Keystore
+        run: |
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > release.keystore
+
+      - name: Build APK (arm64-v8a, OSS flavor)
+        env:
+          KEYSTORE_PASS: ${{ secrets.KEY_STORE_PASSWORD }}
+          ALIAS_NAME: ${{ secrets.KEY_ALIAS }}
+          ALIAS_PASS: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleOssRelease --no-daemon --stacktrace
+
+      - name: Prepare Artifact
+        run: |
+          mkdir -p ${{ github.workspace }}/OutAPK/
+          find app/build/outputs/apk -name "*.apk" -exec cp {} ${{ github.workspace }}/OutAPK/ \;
+
+      - name: Upload APK To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NekoBox-arm64-v8a
+          path: ${{ github.workspace }}/OutAPK/*.apk
+          retention-days: 7
