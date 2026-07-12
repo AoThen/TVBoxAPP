@@ -94,7 +94,7 @@ jobs:
         working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
         run: |
           corepack enable
-          yarn install
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
 
       - name: Build arm64-v8a APK
         if: ${{ env.commit }}
