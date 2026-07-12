@@ -1,10 +1,10 @@
 
-name: Build-MaterialFiles
+name: Build-databag1.6
 
 on:
   push:
-    paths:
-        - .github/workflows/test14.yml
+paths:
+- .github/workflows/build-databag-1.6.yml
   workflow_dispatch:
 
 jobs:
@@ -24,43 +24,52 @@ jobs:
 
       - name: Checkout Source Code
         run: |
-            git clone  --depth 1 https://github.com/AoThen/MaterialFiles MaterialFiles_temp
-            mv -f MaterialFiles_temp/* ./
-            rm -rf MaterialFiles_temp
+            git clone  --depth 1 https://github.com/AoThen/databag -b bulid databag_temp
+            mv -f databag_temp/* ./
+            rm -rf databag_temp
 
-      - name: Set up JDK 17
+      # - name: Copy CI gradle.properties
+      #   shell: bash
+      #   run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
-            distribution: 'temurin'
-            java-version: '21'
+          java-version: '17'
+          distribution: 'temurin'
 
-    #   - name: Build with Gradle
-    #     run: ./gradlew assembleDebug lintVitalRelease
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
+      - name: Install npm dependencies
+        working-directory: ./app/client/mobile
+        run: npm install --legacy-peer-deps
+          
 
       - name: Decode Keystore
         run: |
-          cd app
-          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
+          cd app/client/mobile/android
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > app/kt.jksx
+          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+          echo "storeFile=kt.jksx" >> keystore.properties
 
-        #   cd packages/app-mobile/android
-        #   echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
-        #   echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
-        #   echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
-        #   echo "storeFile=${{ github.workspace }}packages/app-mobile/android/kt.jks" >> keystore.properties
 
-      - name: Build
+      - name: build
         env:
           SIGN_STORE_FILE: kt.jksx
           SIGN_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: cd app/client/mobile/android && ./gradlew assembleRelease
 
 
       - name: Prepare App
         run: |
-          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/MaterialFiles.apk
+          find . -name "*.apk" -exec du -h {} \;
           mkdir -p ${{ github.workspace }}/OutAPK/
           find . -name "*.apk" -exec mv {} ${{ github.workspace }}/OutAPK/ \;
         #   cd packages/app-mobile/android
@@ -88,5 +97,5 @@ jobs:
       - name: Upload App To Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MaterialFiles
+          name: databag
           path: ${{ github.workspace }}/OutAPK/*.apk
