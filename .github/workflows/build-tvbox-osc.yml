@@ -177,6 +177,8 @@ jobs:
                 accessor="${dep//-/.}"
                 sed -i "/^    coreLibraryDesugaring libs.desugar/i\    implementation project(':media3-lib-${dep}')" app/build.gradle
               done
+              # common_config.gradle 的 consumerProguardFiles 引用了不存在的 proguard-rules.txt
+              sed -i "/consumerProguardFiles 'proguard-rules.txt'/d" ../media/common_config.gradle
               # debug view 的 sed（fork 的 PlayerView 没有这些方法）
               sed -i 's/getPlayerView()\.isDebugViewVisible()/false/g' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
               sed -i 's/getPlayerView()\.toggleDebugView();/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
