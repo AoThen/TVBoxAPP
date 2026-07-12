@@ -5,8 +5,13 @@ import java.io.File;
 
 public class DanmakuConfig {
 
-    public static final int STYLE_STROKE = 0;
+    public static final int STYLE_NONE = 0;
+    public static final int STYLE_STROKE = 1;
+    public static final int STYLE_SHADOW = 2;
+    public static final int STYLE_PROJECTION = 3;
     public static final int COLOR_MODE_DEFAULT = 0;
+    public static final int COLOR_MODE_COLORFUL = 1;
+    public static final int COLOR_MODE_GRADIENT = 2;
 
     public static final DanmakuConfig DEFAULT = new DanmakuConfig();
 

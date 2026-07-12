@@ -151,6 +151,38 @@ jobs:
               sed -i '/player\.selectEdition(edition);/d' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
               perl -i -0pe 's/\s*@Override\s*\n\s*public void onMediaChaptersChanged\(@NonNull List<MediaChapter> chapters\)\s*\{[^}]*\}//g' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
               perl -i -0pe 's/\s*@Override\s*\n\s*public void onMediaEditionsChanged\(@NonNull List<MediaEdition> editions\)\s*\{[^}]*\}//g' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              sed -i 's/return player\.isCommandAvailable(Player\.COMMAND_GET_TEXT_OFFSET) ? player\.getTextOffsetMs() : 0;/return 0;/' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              sed -i 's/if (player\.isCommandAvailable(Player\.COMMAND_SET_TEXT_OFFSET)) player\.setTextOffsetMs(offsetMs);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              sed -i 's/return player\.isCommandAvailable(Player\.COMMAND_GET_AUDIO_OFFSET) ? player\.getAudioOffsetMs() : 0;/return 0;/' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              sed -i 's/if (player\.isCommandAvailable(Player\.COMMAND_SET_AUDIO_OFFSET)) player\.setAudioOffsetMs(offsetMs);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              perl -i -0pe 's/\s*@Override\s*\n\s*public void onTextOffsetChanged\([^)]*\)\s*\{[^}]*\}//g' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              perl -i -0pe 's/\s*@Override\s*\n\s*public void onAudioOffsetChanged\([^)]*\)\s*\{[^}]*\}//g' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              sed -i 's/MimeTypes\.APPLICATION_OCTET_STREAM/"application\/octet-stream"/' app/src/main/java/com/fongmi/android/tv/player/exo/ExoUtil.java
+              sed -i 's/\.setFfmpegAudioPrefer(audioPrefer)//' app/src/main/java/com/fongmi/android/tv/player/exo/ExoUtil.java
+              sed -i 's/\.setFfmpegVideoPrefer(videoPrefer)//' app/src/main/java/com/fongmi/android/tv/player/exo/ExoUtil.java
+              sed -i 's/\.setDecode(decode)//' app/src/main/java/com/fongmi/android/tv/player/media/MediaItemFactory.java
+              sed -i 's/\.setAdblock(Setting\.isAdblock())//' app/src/main/java/com/fongmi/android/tv/player/media/MediaItemFactory.java
+              sed -i 's/subtitleView\.addPosition(0\.005f);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/dialog/SubtitleDialog.java
+              sed -i 's/subtitleView\.getPosition()/0\.0f/g' app/src/main/java/com/fongmi/android/tv/ui/dialog/SubtitleDialog.java
+              sed -i 's/subtitleView\.subPosition(0\.005f);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/dialog/SubtitleDialog.java
+              sed -i 's/subtitleView\.addTextSize(0\.002f);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/dialog/SubtitleDialog.java
+              sed -i 's/subtitleView\.getTextSize()/0\.0f/g' app/src/main/java/com/fongmi/android/tv/ui/dialog/SubtitleDialog.java
+              sed -i 's/subtitleView\.subTextSize(0\.002f);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/dialog/SubtitleDialog.java
+              sed -i 's/subtitleView\.reset();/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/dialog/SubtitleDialog.java
+              sed -i 's/getPlayerView()\.isDebugViewVisible()/false/g' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/getPlayerView()\.toggleDebugView();/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/getPlayerView()\.hideDebugView();/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/getPlayerView()\.setRender(PlayerSetting\.getRender());/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/playerView\.setRender(PlayerSetting\.getRender());/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/playerView\.setDanmakuOkHttpClient(OkHttp\.player());/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/playerView\.setDanmakuEnabled(DanmakuSetting\.isShow());/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/playerView\.setDanmakuConfig(DanmakuSetting\.getConfig());/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/playerView\.getSubtitleView()\.setBottomPosition(PlayerSetting\.getSubtitlePosition());/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/getPlayerView()\.setDanmakuSource(player()\.getSelectedDanmakuUri());/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/getPlayerView()\.setDanmakuSource(uri);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/getPlayerView()\.setDanmakuConfig(config);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/getPlayerView()\.setDanmakuEnabled(enabled);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
+              sed -i 's/getPlayerView()\.sendDanmaku(text);/\/\/ removed by patch/' app/src/main/java/com/fongmi/android/tv/ui/activity/PlaybackActivity.java
             fi
           elif [ "${{ matrix.userName }}" == "chengxue2020" ]; then
             echo '空'

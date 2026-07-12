@@ -27,6 +27,10 @@ public class MpvPlayer extends ForwardingPlayer {
 
     public void setSubtitleOptions(MpvPlayerConfig config) {}
 
+    public void addSubtitle(Object config) {}
+
+    public void setDecode(int decode) {}
+
     public static class Builder {
         private final Context context;
         private int decode;
