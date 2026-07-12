@@ -4,7 +4,7 @@ name: Build-thunderbird-android
 on:
   push:
     paths:
-        - .github/workflows/test15.yml
+        - .github/workflows/build-thunderbird.yml
   workflow_dispatch:
 
 jobs:

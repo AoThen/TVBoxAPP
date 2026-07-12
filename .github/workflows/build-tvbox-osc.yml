@@ -113,7 +113,7 @@ jobs:
           git checkout ${{ env.commit }}
           echo "tag=$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
           echo "tagx=${{ matrix.userName }}-${{ matrix.repoName }}-${{ matrix.branchName }}-$(git log --date=format:'%Y%m%d-%H%M' --pretty=format:%cd ${{ env.commitS }} -1)" >> $GITHUB_ENV
-          if [ "${{ matrix.userName }}" == "xinyi1984" && ${{ matrix.repoName }} == "TV" && ${{ matrix.branchName }} == "fongmi" ]; then
+          if [[ "${{ matrix.userName }}" == "xinyi1984" && "${{ matrix.repoName }}" == "TV" && "${{ matrix.branchName }}" == "fongmi" ]]; then
             sed -i 's|/home/runner/work/TVBox-TV/TVBox-TV|${{ github.workspace }}|g' settings.gradle
           fi
 
@@ -127,7 +127,7 @@ jobs:
             sed -i 's/\.concat(buildTime())/ +\"${{ env.tag }}\"/g' app/build.gradle 
             # 目前关于页面没有合并我的分支
             sed -i "/android:text=/s#=\"#=\"${{ env.tag }}\\\\n\\\\n#" app/src/main/res/layout/dialog_about.xml
-  elif [ "${{ matrix.userName }}" == "FongMi" ] || ["${{ matrix.repoName }}" == "TV-APK"] ; then
+  elif [ "${{ matrix.userName }}" == "FongMi" ] || [ "${{ matrix.repoName }}" == "TV-APK" ] ; then
     sed -i 's/TeamNewPipe/teamnewpipe/g' app/build.gradle
     sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle
           elif [ "${{ matrix.userName }}" == "chengxue2020" ]; then
@@ -176,33 +176,33 @@ jobs:
           sed -i "/armeabi-v7a[\'\"]$/s#\$#, 'arm64-v8a'#" player/build.gradle
 
 - name: Setup Python
-  if: ${{ (matrix.userName == 'q215613905' || matrix.userName == 'FongMi' || matrix.userName == 'AoThen') && env.commit && (matrix.repoName != 'TV-APK') }}
-  uses: actions/setup-python@v4
-  with:
-    python-version: '3.8'
+        if: ${{ (matrix.userName == 'q215613905' || matrix.userName == 'FongMi' || matrix.userName == 'AoThen') && env.commit && (matrix.repoName != 'TV-APK') }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
 
-- name: Setup Python
-  if: ${{ (matrix.userName == 'FongMi' || matrix.userName == 'AoThen') && env.commit && (matrix.repoName == 'TV') }}
-  uses: actions/setup-python@v4
-  with:
-    python-version: '3.10'
+      - name: Setup Python
+        if: ${{ (matrix.userName == 'FongMi' || matrix.userName == 'AoThen') && env.commit && (matrix.repoName == 'TV') }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-- name: Install Python dependencies
-  if: ${{ (matrix.userName == 'q215613905' || matrix.userName == 'FongMi' || matrix.userName == 'AoThen') && env.commit && (matrix.repoName != 'TV-APK') }}
-  run: |
-    python -m pip install --upgrade pip
-    pip install lxml ujson pyquery requests jsonpath cachetools pycryptodome beautifulsoup4
+      - name: Install Python dependencies
+        if: ${{ (matrix.userName == 'q215613905' || matrix.userName == 'FongMi' || matrix.userName == 'AoThen') && env.commit && (matrix.repoName != 'TV-APK') }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install lxml ujson pyquery requests jsonpath cachetools pycryptodome beautifulsoup4
 
-- name: Modify pyramid——build.gradle
-  if: ${{ env.commit && (matrix.repoName != 'TV-APK') }}
-  working-directory: TVBoxOSC
-  run: |
-    sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle
+      - name: Modify pyramid——build.gradle
+        if: ${{ env.commit && (matrix.repoName != 'TV-APK') }}
+        working-directory: TVBoxOSC
+        run: |
+          sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle
 
-- name: Setup Python local.properties
-  if: ${{ env.commit && (matrix.repoName != 'TV-APK') }}
-  working-directory: TVBoxOSC
-  run: echo "" > local.properties
+      - name: Setup Python local.properties
+        if: ${{ env.commit && (matrix.repoName != 'TV-APK') }}
+        working-directory: TVBoxOSC
+        run: echo "" > local.properties
 
 
       - name: Release Apk Sign
@@ -241,7 +241,7 @@ jobs:
         working-directory: TVBoxOSC
         run: |
           chmod +x gradlew
-          ./gradlew assemblerelease --build-cache --parallel --daemon --warning-mode all
+          ./gradlew assemblerelease --build-cache --parallel --warning-mode all
 
       - name: Prepare App
         if: ${{ env.commit }}
@@ -276,7 +276,6 @@ jobs:
                 lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}\/tree\/${{ matrix.branchName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
             else
                 lastCommit=${{ env.commit }}
-                echo "- [${{ matrix.userName }}/${{ matrix.repoName }}/tree/${{ matrix.branchName }}](https://github.com/${{ matrix.userName }}/${{ matrix.repoName }}/tree/${{ matrix.branchName }}) (Updated: ${{ env.commit }})" >> ${{ github.workspace }}/README.md
             fi
 
             export LESSCHARSET=utf-8

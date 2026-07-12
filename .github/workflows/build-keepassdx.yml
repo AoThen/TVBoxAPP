@@ -4,7 +4,7 @@ name: Build-KeePassDX
 on:
   push:
     paths:
-        - .github/workflows/test17.yml
+        - .github/workflows/build-keepassdx.yml
   workflow_dispatch:
 
 jobs:

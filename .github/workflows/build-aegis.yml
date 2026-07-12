@@ -4,7 +4,7 @@ name: Build-Aegis
 on:
   push:
     paths:
-        - .github/workflows/test16.yml
+        - .github/workflows/build-aegis.yml
   workflow_dispatch:
 
 jobs:

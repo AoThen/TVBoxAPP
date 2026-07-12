@@ -86,10 +86,3 @@ jobs:
           path: |
             pure_live_TV/build/app/outputs/flutter-apk/pure_live_TV_app-armeabi-v7a.apk
             pure_live_TV/build/app/outputs/flutter-apk/pure_live_TV_app-arm64-v8a.apk
-
-
-      - name: Delete workflow runs
-        uses: AoThen/delete-workflow-runs@main
-        with:
-          retain_days: 1
-          keep_minimum_runs: 3

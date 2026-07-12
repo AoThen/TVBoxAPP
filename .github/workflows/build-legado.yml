@@ -98,13 +98,13 @@ jobs:
           java-version: 17
       - name: Setup Gradle
         if: ${{ env.commit }}
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v4
       - name: Build Release With Gradle
         if: ${{ env.commit }}
         working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
         run: |
           chmod +x gradlew
-          ./gradlew assembleAppRelease --build-cache --parallel --daemon --warning-mode all
+          ./gradlew assembleAppRelease --build-cache --parallel --warning-mode all
       - name: Prepare App
         if: ${{ env.commit }}
         working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}

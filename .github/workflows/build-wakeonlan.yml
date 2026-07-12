@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'adopt'
+          distribution: 'temurin'
 
       - name: Release Apk Sign
         run: |
@@ -46,7 +46,7 @@ jobs:
       - name: Build With Gradle
         run: |
           chmod +x gradlew
-          ./gradlew --parallel --max-workers=8 clean bundlerelease assemblerelease
+          ./gradlew --parallel --max-workers=8 bundlerelease assemblerelease
 
 
       - name: Prepare App

@@ -3,8 +3,8 @@ name: Build-MaterialFiles
 
 on:
   push:
-paths:
-- .github/workflows/build-material-files.yml
+    paths:
+      - .github/workflows/build-material-files.yml
   workflow_dispatch:
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
             mv -f MaterialFiles_temp/* ./
             rm -rf MaterialFiles_temp
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
             distribution: 'temurin'

@@ -3,8 +3,8 @@ name: Build-databag1.6
 
 on:
   push:
-paths:
-- .github/workflows/build-databag-1.6.yml
+    paths:
+      - .github/workflows/build-databag-1.6.yml
   workflow_dispatch:
 
 jobs:
