@@ -130,6 +130,13 @@ jobs:
           elif [ "${{ matrix.userName }}" == "FongMi" ] || [ "${{ matrix.repoName }}" == "TV-APK" ] ; then
             sed -i 's/TeamNewPipe/teamnewpipe/g' app/build.gradle
             sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle || true
+            if [ "${{ matrix.userName }}" == "FongMi" ]; then
+              sed -i '/^zxingCore = /amedia3 = "1.10.1"' gradle/libs.versions.toml
+              sed -i '/^\[plugins\]/imedia3-common = { group = "androidx.media3", name = "media3-common", version.ref = "media3" }' gradle/libs.versions.toml
+              sed -i '/^\[plugins\]/imedia3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }' gradle/libs.versions.toml
+              sed -i '/^\[plugins\]/imedia3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }' gradle/libs.versions.toml
+              sed -i '/^    coreLibraryDesugaring libs.desugar/i\    implementation libs.media3.common\n    implementation libs.media3.session\n    implementation libs.media3.ui' app/build.gradle
+            fi
           elif [ "${{ matrix.userName }}" == "chengxue2020" ]; then
             echo '空'
           elif [ "${{ matrix.userName }}" == "mlabalabala" ]; then
