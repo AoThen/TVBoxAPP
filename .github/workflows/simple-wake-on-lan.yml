@@ -61,7 +61,6 @@ jobs:
             cd build/app/outputs/flutter-apk/
 
             # 重命名 APK 文件
-            mv app-armeabi-v7a-release.apk  simple-wake-on-lan-armeabi-v7a.apk
             mv app-arm64-v8a-release.apk  simple-wake-on-lan-arm64-v8a.apk
 
     #   - uses: actions/upload-artifact@v4
