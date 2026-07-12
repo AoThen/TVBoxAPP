@@ -106,6 +106,24 @@ jobs:
         run: |
           npm install -g nativescript cross-var
 
+      - name: Debug Environment
+        if: ${{ env.commit }}
+        run: |
+          echo "=== Java ==="
+          java -version
+          echo "=== Gradle ==="
+          which gradle || echo "gradle not in PATH"
+          gradle --version 2>/dev/null || echo "gradle not available"
+          echo "=== ns ==="
+          which ns || echo "ns not in PATH"
+          ns --version 2>/dev/null || echo "ns version check failed"
+          echo "=== ANDROID_HOME ==="
+          echo "$ANDROID_HOME"
+          ls -la "$ANDROID_HOME/platforms/" 2>/dev/null || echo "no platforms dir"
+          ls -la "$ANDROID_HOME/build-tools/" 2>/dev/null || echo "no build-tools dir"
+          echo "=== ns doctor ==="
+          ns doctor android 2>&1 || echo "ns doctor failed"
+
       - name: Install Dependencies
         if: ${{ env.commit }}
         working-directory: Build_${{ matrix.repoName }}_${{ matrix.branchName }}
