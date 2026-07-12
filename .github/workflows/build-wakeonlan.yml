@@ -33,6 +33,7 @@ jobs:
       - name: Decode Keystore
         run: |
           echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > app/kt.jksx
+          echo "" >> gradle.properties
           echo "UPLOAD_KEYSTORE_PATH=app/kt.jksx" >> gradle.properties
           echo "KEYSTORE_PASSWORD=${{ secrets.KEY_STORE_PASSWORD }}" >> gradle.properties
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> gradle.properties
