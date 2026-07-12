@@ -35,12 +35,26 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Setup Android SDK & NDK
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.0.8775105" --sdk_root=$ANDROID_HOME
+
+      - name: Setup Go 1.24
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Decode Release Keystore
         run: |
           echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > release.keystore
+
+      - name: Build libcore (Go → AAR)
+        run: |
+          bash buildScript/lib/core/init.sh
+          bash buildScript/lib/core/build.sh
 
       - name: Build APK (arm64-v8a, OSS flavor)
         env:
