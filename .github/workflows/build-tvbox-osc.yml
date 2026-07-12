@@ -142,7 +142,8 @@ jobs:
               sed -i '/^\[plugins\]/imedia3-database = { group = "androidx.media3", name = "media3-database", version.ref = "media3" }' gradle/libs.versions.toml
               sed -i '/^\[plugins\]/imedia3-datasource-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3" }' gradle/libs.versions.toml
               for dep in common session ui exoplayer extractor datasource database datasource-okhttp; do
-                sed -i "/^    coreLibraryDesugaring libs.desugar/i\    implementation libs.media3.${dep}" app/build.gradle
+                accessor="${dep//-/.}"
+                sed -i "/^    coreLibraryDesugaring libs.desugar/i\    implementation libs.media3.${accessor}" app/build.gradle
               done
             fi
           elif [ "${{ matrix.userName }}" == "chengxue2020" ]; then
