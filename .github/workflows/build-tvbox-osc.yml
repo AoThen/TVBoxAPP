@@ -145,23 +145,12 @@ jobs:
                 accessor="${dep//-/.}"
                 sed -i "/^    coreLibraryDesugaring libs.desugar/i\    implementation libs.media3.${accessor}" app/build.gradle
               done
-              python3 << 'PYEOF'
-import re
-with open('app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java', 'r') as f:
-    content = f.read()
-content = content.replace('return player.getCurrentMediaChapters();', 'return List.of();')
-content = content.replace('return player.getCurrentMediaEditions();', 'return List.of();')
-content = re.sub(r'\s+player\.selectChapter\(chapter\);', '', content)
-content = re.sub(r'\s+player\.selectEdition\(edition\);', '', content)
-content = re.sub(
-    r'\s+@Override\s*\n\s+public void onMediaChaptersChanged\(@NonNull List<MediaChapter> chapters\)\s*\{[^}]*\}',
-    '', content)
-content = re.sub(
-    r'\s+@Override\s*\n\s+public void onMediaEditionsChanged\(@NonNull List<MediaEdition> editions\)\s*\{[^}]*\}',
-    '', content)
-with open('app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java', 'w') as f:
-    f.write(content)
-PYEOF
+              sed -i 's/return player\.getCurrentMediaChapters();/return List.of();/' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              sed -i 's/return player\.getCurrentMediaEditions();/return List.of();/' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              sed -i '/player\.selectChapter(chapter);/d' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              sed -i '/player\.selectEdition(edition);/d' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              perl -i -0pe 's/\s*@Override\s*\n\s*public void onMediaChaptersChanged\(@NonNull List<MediaChapter> chapters\)\s*\{[^}]*\}//g' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
+              perl -i -0pe 's/\s*@Override\s*\n\s*public void onMediaEditionsChanged\(@NonNull List<MediaEdition> editions\)\s*\{[^}]*\}//g' app/src/main/java/com/fongmi/android/tv/player/PlayerManager.java
             fi
           elif [ "${{ matrix.userName }}" == "chengxue2020" ]; then
             echo '空'
