@@ -19,9 +19,9 @@ jobs:
 
       - name: Checkout Source Code
         run: |
-            git clone --depth 1 https://github.com/AoThen/WakeOnLan AoThen/WakeOnLan
-            mv -f AoThen/WakeOnLan/* ./
-            rm -rf AoThen/WakeOnLan
+            git clone --depth 1 https://github.com/Florianisme/WakeOnLan Florianisme/WakeOnLan
+            mv -f Florianisme/WakeOnLan/* ./
+            rm -rf Florianisme/WakeOnLan
             rm -rf wear
 
       - name: Set up JDK and Gradle
