@@ -149,6 +149,8 @@ jobs:
                 "common:common" \
                 "session:session" \
                 "exoplayer:exoplayer" \
+                "container:container" \
+                "decoder:decoder" \
                 "ui:ui" "ui-danmaku:ui_danmaku" \
                 "database:database" \
                 "datasource:datasource" "datasource-okhttp:datasource_okhttp" \
@@ -159,8 +161,13 @@ jobs:
                 echo "include ':media3-lib-${name}'" >> settings.gradle
                 echo "project(':media3-lib-${name}').projectDir = new File(rootDir, '../media/libraries/${dir}')" >> settings.gradle
               done
-              echo "include ':media3-test-utils'" >> settings.gradle
-              echo "project(':media3-test-utils').projectDir = new File(rootDir, '../media/libraries/test_utils')" >> settings.gradle
+              # 移除 kotlin-android 插件（FongMi 项目已全局应用，避免重复添加）
+              sed -i "/apply plugin: 'kotlin-android'/d" ../media/libraries/exoplayer/build.gradle
+              # 删除所有 test 依赖（release 构建不需要）
+              for f in ../media/libraries/*/build.gradle; do
+                sed -i '/testImplementation/d' "$f"
+                sed -i '/androidTestImplementation/d' "$f"
+              done
               # 替换 app/build.gradle 中的 Maven 依赖为 project 依赖
               for dep in common session ui exoplayer extractor datasource database datasource-okhttp; do
                 accessor="${dep//-/.}"
