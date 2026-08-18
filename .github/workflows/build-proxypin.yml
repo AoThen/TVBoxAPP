@@ -1,0 +1,89 @@
+name: Build-ProxyPin
+
+on:
+  push:
+    paths:
+      - .github/workflows/build-proxypin.yml
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 30
+          keep_minimum_runs: 1
+
+      - name: Checkout Source Code
+        run: |
+          git clone --depth 1 https://github.com/agogo233/proxypin proxypin
+
+      - name: Read version from pubspec.yaml
+        id: version
+        shell: bash
+        working-directory: proxypin
+        run: |
+          content="$(cat pubspec.yaml)"
+          if [[ $content =~ version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+[+].+) ]]; then
+            echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Failed to parse version from pubspec.yaml" >&2
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        working-directory: proxypin
+        run: flutter pub get
+
+      - name: Decode Release Keystore
+        working-directory: proxypin/android/app
+        run: |
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > release.jks
+          echo "storeFile=release.jks" > ../key.properties
+          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" >> ../key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> ../key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> ../key.properties
+
+      - name: Build APK (arm64-v8a)
+        working-directory: proxypin
+        run: flutter build apk --release --target-platform android-arm64
+        env:
+          ANDROID_ABI_FILTER: arm64-v8a
+
+      - name: Package APK
+        working-directory: proxypin
+        run: |
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          if [[ ! -f "$apk" ]]; then
+            echo "APK not found at $apk" >&2
+            exit 1
+          fi
+          mkdir -p dist
+          mv "$apk" "dist/ProxyPin-${{ steps.version.outputs.version }}-android-arm64-v8a.apk"
+
+      - name: Upload APK To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProxyPin-android-arm64-${{ steps.version.outputs.version }}
+          path: proxypin/dist/*android-arm64-v8a.apk
+          retention-days: 30
+          if-no-files-found: error
