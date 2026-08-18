@@ -31,7 +31,7 @@ jobs:
         working-directory: proxypin
         run: |
           content="$(cat pubspec.yaml)"
-          if [[ $content =~ version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+[+].+) ]]; then
+          if [[ $content =~ version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+[+][0-9]+) ]]; then
             echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
           else
             echo "Failed to parse version from pubspec.yaml" >&2
