@@ -14,20 +14,40 @@ jobs:
     steps:
       - name: Download APK
         run: |
-          curl -L --max-time 600 --retry 3 -o download.zip "${{ inputs.apk_url }}"
+          apk_url="${{ inputs.apk_url }}"
+          # GitHub Artifact 网页/下载 URL → API 下载 URL
+          if echo "$apk_url" | grep -qE 'github\.com/[^/]+/[^/]+/actions/(runs|download)/[^/]+/artifacts/'; then
+            owner=$(echo "$apk_url" | sed -E 's#https://github\.com/([^/]+)/([^/]+)/.*#\1#')
+            repo=$(echo "$apk_url" | sed -E 's#https://github\.com/([^/]+)/([^/]+)/.*#\2#')
+            artifact_id=$(echo "$apk_url" | sed -E 's#.*artifacts/([0-9]+).*#\1#')
+            apk_url="https://api.github.com/repos/$owner/$repo/actions/artifacts/$artifact_id/zip"
+            echo "转换为 API 下载地址: $apk_url"
+          fi
+
+          curl -L --max-time 600 --retry 3 -H "Authorization: token $GITHUB_TOKEN" -o download.zip "$apk_url"
           file download.zip | grep -q 'Zip archive' || { echo "ERROR: 下载的文件不是有效的 APK/ZIP"; exit 1; }
 
-          # GitHub Artifact 下载是 ZIP 包，需解出内层 APK
-          if unzip -l download.zip 2>/dev/null | grep -q '\.apk$'; then
-            echo "检测到 GitHub Artifact 包，正在解出 APK..."
-            unzip -o download.zip -d extracted
-            apk_path=$(find extracted -name "*.apk" | head -1)
-            [ -n "$apk_path" ] || { echo "ERROR: ZIP 中未找到 APK"; exit 1; }
-            mv "$apk_path" original.apk
-            rm -rf extracted download.zip
-          else
-            mv download.zip original.apk
-          fi
+          # 递归解包（GitHub Artifact 可能多层嵌套，如 ZIP→ZIP→APK）
+          mkdir -p work && cp download.zip work/ && cd work
+          for i in $(seq 1 10); do
+            apk_path=$(find . -type f -name "*.apk" | head -1)
+            if [ -n "$apk_path" ]; then
+              cp "$apk_path" ../original.apk
+              cd .. && rm -rf work
+              echo "找到 APK: $apk_path"
+              exit 0
+            fi
+            zip_path=$(find . -type f -name "*.zip" | head -1)
+            if [ -z "$zip_path" ]; then
+              echo "ERROR: 未找到 APK"
+              exit 1
+            fi
+            dir=$(dirname "$zip_path")
+            unzip -o "$zip_path" -d "$dir"
+            rm "$zip_path"
+          done
+          echo "ERROR: 递归解包超限"
+          exit 1
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
