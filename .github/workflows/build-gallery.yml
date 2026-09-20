@@ -42,7 +42,7 @@ jobs:
           echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
-          echo "storeFile=kt.jksx" >> keystore.properties
+          echo "storeFile=../kt.jksx" >> keystore.properties
 
       - name: Build
         run: ./gradlew assembleFossRelease -Parmv8Only
