@@ -1,0 +1,54 @@
+name: Build-Gallery
+
+on:
+  push:
+    paths:
+      - .github/workflows/build-gallery.yml
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 1
+
+      - name: Checkout Source Code
+        run: |
+          git clone --depth 1 https://github.com/agogo233/Gallery Gallery_temp
+          mv -f Gallery_temp/* ./
+          rm -rf Gallery_temp
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > kt.jksx
+          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+          echo "storeFile=kt.jksx" >> keystore.properties
+
+      - name: Build
+        run: ./gradlew assembleFossRelease -Parmv8Only
+
+      - name: Prepare App
+        run: |
+          find . -name "*.apk" -exec du -h {} \;
+          mkdir -p ${{ github.workspace }}/OutAPK/
+          find . -name "*.apk" -exec mv {} ${{ github.workspace }}/OutAPK/ \;
+
+      - name: Upload App To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gallery
+          path: ${{ github.workspace }}/OutAPK/*.apk
