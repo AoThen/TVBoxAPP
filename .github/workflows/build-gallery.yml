@@ -21,6 +21,7 @@ jobs:
       - name: Checkout Source Code
         run: |
           git clone --depth 1 https://github.com/agogo233/Gallery Gallery_temp
+          shopt -s dotglob
           mv -f Gallery_temp/* ./
           rm -rf Gallery_temp
 
@@ -29,6 +30,11 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
 
       - name: Decode Keystore
         run: |
