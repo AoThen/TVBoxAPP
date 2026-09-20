@@ -14,8 +14,20 @@ jobs:
     steps:
       - name: Download APK
         run: |
-          curl -L --max-time 600 --retry 3 -o original.apk "${{ inputs.apk_url }}"
-          file original.apk | grep -q 'Zip archive' || { echo "ERROR: 下载的文件不是有效的 APK/ZIP"; exit 1; }
+          curl -L --max-time 600 --retry 3 -o download.zip "${{ inputs.apk_url }}"
+          file download.zip | grep -q 'Zip archive' || { echo "ERROR: 下载的文件不是有效的 APK/ZIP"; exit 1; }
+
+          # GitHub Artifact 下载是 ZIP 包，需解出内层 APK
+          if unzip -l download.zip 2>/dev/null | grep -q '\.apk$'; then
+            echo "检测到 GitHub Artifact 包，正在解出 APK..."
+            unzip -o download.zip -d extracted
+            apk_path=$(find extracted -name "*.apk" | head -1)
+            [ -n "$apk_path" ] || { echo "ERROR: ZIP 中未找到 APK"; exit 1; }
+            mv "$apk_path" original.apk
+            rm -rf extracted download.zip
+          else
+            mv download.zip original.apk
+          fi
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
