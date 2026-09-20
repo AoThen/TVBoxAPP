@@ -1,0 +1,64 @@
+name: Re-sign APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: '目标 APK 下载地址'
+        required: true
+        type: string
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download APK
+        run: |
+          curl -L --max-time 600 --retry 3 -o original.apk "${{ inputs.apk_url }}"
+          file original.apk | grep -q 'Zip archive' || { echo "ERROR: 下载的文件不是有效的 APK/ZIP"; exit 1; }
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'build-tools;34.0.0'
+
+      - name: Setup 7z Encryption
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq p7zip-full
+
+      - name: Decode Keystore
+        run: echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > keystore.jks
+
+      - name: Strip Old Signature
+        run: |
+          unzip -o original.apk -d extracted
+          rm -rf extracted/META-INF/
+          cd extracted && zip -r -X ../unsigned.apk .
+
+      - name: Zipalign
+        run: $ANDROID_HOME/build-tools/34.0.0/zipalign -f -v 4 unsigned.apk aligned.apk
+
+      - name: Sign
+        run: |
+          $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
+            --ks keystore.jks \
+            --ks-pass pass:${{ secrets.KEY_STORE_PASSWORD }} \
+            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+            aligned.apk
+
+      - name: Verify
+        run: $ANDROID_HOME/build-tools/34.0.0/apksigner verify aligned.apk
+
+      - name: Encrypt with Password
+        run: |
+          if [ -z "${{ secrets.APK_PASSWORD }}" ]; then
+            echo "ERROR: APK_PASSWORD secret 未配置"
+            exit 1
+          fi
+          echo "${{ secrets.APK_PASSWORD }}" | 7z a -p -mhe=on -tzip signed-apk-encrypted.zip aligned.apk >/dev/null
+
+      - name: Upload Signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-apk
+          path: signed-apk-encrypted.zip
