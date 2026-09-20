@@ -24,7 +24,10 @@ jobs:
             echo "转换为 API 下载地址: $apk_url"
           fi
 
-          curl -L --max-time 600 --retry 3 -H "Authorization: token $GITHUB_TOKEN" -o download.zip "$apk_url"
+          # 跨仓库 Artifact 下载需要专用 token，优先用 ARTIFACT_TOKEN
+          dl_token="${{ secrets.ARTIFACT_TOKEN }}"
+          [ -z "$dl_token" ] && dl_token="$GITHUB_TOKEN"
+          curl -L --max-time 600 --retry 3 -H "Authorization: token $dl_token" -o download.zip "$apk_url"
           file download.zip | grep -q 'Zip archive' || { echo "ERROR: 下载的文件不是有效的 APK/ZIP"; exit 1; }
 
           # 递归解包（GitHub Artifact 可能多层嵌套，如 ZIP→ZIP→APK）
