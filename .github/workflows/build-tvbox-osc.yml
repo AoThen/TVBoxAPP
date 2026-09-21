@@ -131,9 +131,9 @@ jobs:
             sed -i 's/TeamNewPipe/teamnewpipe/g' app/build.gradle
             sed -i '/buildPython("D:\/Programs\/Python\/Python38\/python.exe")/d' pyramid/build.gradle || true
             if [ "${{ matrix.userName }}" == "FongMi" ]; then
-              # 方案A: 使用 FongMi 的 media3 fork (release-1.10.1-fongmi 分支)
+              # 方案A: 使用 FongMi 的 media3 fork (release-1.11.0-fongmi 分支)
               # 克隆 fork 到同级目录，通过 project 依赖替代 Maven 依赖
-              git clone --branch release-1.10.1-fongmi --depth 1 https://github.com/FongMi/media.git ../media
+              git clone --branch release-1.11.0-fongmi --depth 1 https://github.com/FongMi/media.git ../media
               mkdir -p app/src/main/java/androidx/media3/exoplayer/source/preload
               mkdir -p app/src/main/java/androidx/media3/ui
               mkdir -p app/src/main/java/androidx/media3/mpvplayer
