@@ -55,7 +55,7 @@ jobs:
 
       - name: Prepare Artifact
         run: |
-          ver=$(grep -E '^version:' gift_ledger/pubspec.yaml | awk '{print $2}')
+          ver=$(grep -m1 -E '^version:' gift_ledger/pubspec.yaml | awk '{print $2}')
           mkdir -p OutAPK/
           cp gift_ledger/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk OutAPK/GiftLedger_v${ver}_arm64-v8a.apk
           ls -la OutAPK/
