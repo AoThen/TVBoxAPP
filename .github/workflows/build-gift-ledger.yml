@@ -1,0 +1,68 @@
+name: Build-GiftLedger
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 1
+
+      - name: Checkout Source Code
+        run: git clone --depth 1 --branch master https://github.com/agogo233/Gift_Ledger gift_ledger
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.6
+          channel: stable
+          cache: true
+
+      - name: Install Dependencies
+        working-directory: gift_ledger
+        run: flutter pub get
+
+      - name: Decode Release Keystore
+        run: |
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > gift_ledger/android/app/release.keystore
+          {
+            echo "storeFile=release.keystore"
+            echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}"
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}"
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}"
+          } > gift_ledger/android/app/key.properties
+
+      - name: Build APK (arm64-v8a, release)
+        working-directory: gift_ledger
+        run: flutter build apk --release --split-per-abi --target-platform android-arm64
+
+      - name: Prepare Artifact
+        run: |
+          ver=$(grep -E '^version:' gift_ledger/pubspec.yaml | awk '{print $2}')
+          mkdir -p OutAPK/
+          cp gift_ledger/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk OutAPK/GiftLedger_v${ver}_arm64-v8a.apk
+          ls -la OutAPK/
+
+      - name: Upload APK To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GiftLedger
+          path: OutAPK/*.apk
+          retention-days: 7
