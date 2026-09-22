@@ -141,44 +141,24 @@ jobs:
               cp -r ${{ github.workspace }}/patches/fongmi/app/src/main/java/androidx/media3/exoplayer/source/preload/* app/src/main/java/androidx/media3/exoplayer/source/preload/
               cp -r ${{ github.workspace }}/patches/fongmi/app/src/main/java/androidx/media3/ui/PlayerSeekView.java app/src/main/java/androidx/media3/ui/
               cp -r ${{ github.workspace }}/patches/fongmi/app/src/main/java/androidx/media3/mpvplayer/* app/src/main/java/androidx/media3/mpvplayer/
-              # 在 settings.gradle 末尾添加 media3 fork 模块（仅必需模块，避免插件冲突）
-              echo 'gradle.ext.androidxMediaSettingsDir = file("../media").absolutePath' >> settings.gradle
-              echo 'gradle.ext.androidxMediaModulePrefix = "media3-"' >> settings.gradle
-              # 模块名=media3-lib-{hyphen}, 目录=libraries/{underscore}
-              for entry in \
-                "common:common" \
-                "session:session" \
-                "exoplayer:exoplayer" \
-                "container:container" \
-                "decoder:decoder" \
-                "ui:ui" "ui-danmaku:ui_danmaku" \
-                "database:database" \
-                "datasource:datasource" "datasource-okhttp:datasource_okhttp" \
-                "extractor:extractor" \
-              ; do
-                name="${entry%%:*}"
-                dir="${entry##*:}"
-                echo "include ':media3-lib-${name}'" >> settings.gradle
-                echo "project(':media3-lib-${name}').projectDir = new File(rootDir, '../media/libraries/${dir}')" >> settings.gradle
+              # settings.gradle: 注册 build-logic 约定插件 + Kotlin 插件版本声明
+              sed -i 's/pluginManagement {/pluginManagement {\n    includeBuild("..\/media\/build-logic")\n    plugins { id("org.jetbrains.kotlin.android") version "2.2.0" }/' settings.gradle
+              # settings.gradle: 合并 media3 版本目录到 libs
+              sed -i 's/dependencyResolutionManagement {/dependencyResolutionManagement {\n    versionCatalogs { create("libs") { from(files("gradle\/libs.versions.toml")); from(files("..\/media\/gradle\/libs.versions.toml")) } }/' settings.gradle
+              # 添加 media3 模块（模块名=:lib-{name}，与内部 project 引用一致）
+              for name in common session exoplayer container decoder ui ui-danmaku database datasource datasource-okhttp extractor; do
+                echo "include ':lib-${name}'" >> settings.gradle
+                echo "project(':lib-${name}').projectDir = new File(rootDir, '../media/libraries/${name}')" >> settings.gradle
               done
-              # 移除 kotlin-android 插件（FongMi 项目已全局应用，避免重复添加）
-              sed -i "/apply plugin: 'kotlin-android'/d" ../media/libraries/exoplayer/build.gradle
-              # 先删除多行 test 块（androidTestImplementation(project(...)) { ... }），避免 orphaned 行
-              for f in ../media/libraries/datasource/build.gradle ../media/libraries/exoplayer/build.gradle; do
-                sed -i '/androidTestImplementation(project/{N;N;d}' "$f"
-              done
-              # 删除所有单行 test 依赖（release 构建不需要）
-              for f in ../media/libraries/*/build.gradle; do
-                sed -i '/testImplementation/d' "$f"
-                sed -i '/androidTestImplementation/d' "$f"
-              done
-              # 替换 app/build.gradle 中的 Maven 依赖为 project 依赖
+              # 为 lib-* 模块添加 Kotlin 插件（必须在约定插件之前应用）
+              sed -i '/^plugins {$/a\  id("org.jetbrains.kotlin.android")' ../media/libraries/*/build.gradle.kts
+              # 删除 test 依赖（release 构建不需要）
+              sed -i '/testImplementation/d' ../media/libraries/*/build.gradle.kts
+              sed -i '/androidTestImplementation/d' ../media/libraries/*/build.gradle.kts
+              # 替换 Maven 依赖为 project 依赖
               for dep in common session ui exoplayer extractor datasource database datasource-okhttp; do
-                accessor="${dep//-/.}"
-                sed -i "/^    coreLibraryDesugaring libs.desugar/i\    implementation project(':media3-lib-${dep}')" app/build.gradle
+                sed -i "/^    coreLibraryDesugaring libs.desugar/i\    implementation project(':lib-${dep}')" app/build.gradle
               done
-              # common_config.gradle 的 consumerProguardFiles 引用了不存在的 proguard-rules.txt
-              sed -i "/consumerProguardFiles 'proguard-rules.txt'/d" ../media/common_config.gradle
               # fork 的 DefaultRenderersFactory 缺少 setFfmpegAudioPrefer/setFfmpegVideoPrefer（在文件末尾 } 前插入）
               sed -i '$ i\  public DefaultRenderersFactory setFfmpegAudioPrefer(boolean prefer) { return this; }\n  public DefaultRenderersFactory setFfmpegVideoPrefer(boolean prefer) { return this; }\n  public DefaultRenderersFactory setEnableDv7HevcFallback(boolean enable) { return this; }\n' ../media/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/DefaultRenderersFactory.java
               # debug view 的 sed（fork 的 PlayerView 没有这些方法）
