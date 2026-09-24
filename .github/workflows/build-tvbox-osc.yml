@@ -143,8 +143,44 @@ jobs:
               cp -r ${{ github.workspace }}/patches/fongmi/app/src/main/java/androidx/media3/mpvplayer/* app/src/main/java/androidx/media3/mpvplayer/
               # settings.gradle: 注册 build-logic 约定插件 + Kotlin 插件版本声明
               sed -i 's/pluginManagement {/pluginManagement {\n    includeBuild("..\/media\/build-logic")\n    plugins { id("org.jetbrains.kotlin.android") version "2.2.0" }/' settings.gradle
-              # settings.gradle: 合并 media3 版本目录到 libs
-              sed -i 's/dependencyResolutionManagement {/dependencyResolutionManagement {\n    versionCatalogs { create("libs") { from(files("gradle\/libs.versions.toml")); from(files("..\/media\/gradle\/libs.versions.toml")) } }/' settings.gradle
+              # 合并 media3 版本目录到 libs（Python 合并 TOML，单次 from() 调用）
+              python3 << 'PYEOF'
+def parse_toml(text):
+    sections = {}
+    current = None
+    for line in text.split('\n'):
+        stripped = line.strip()
+        if stripped.startswith('[') and stripped.endswith(']'):
+            current = stripped[1:-1]
+            sections[current] = []
+        elif current and stripped and not stripped.startswith('#'):
+            sections[current].append(line)
+    return sections
+
+def get_keys(lines):
+    return set(line.split('=')[0].strip() for line in lines if '=' in line)
+
+with open('gradle/libs.versions.toml') as f:
+    tvbox = parse_toml(f.read())
+with open('../media/gradle/libs.versions.toml') as f:
+    media3 = parse_toml(f.read())
+
+output = []
+for section in ['versions', 'libraries', 'plugins', 'bundles']:
+    if section in tvbox or section in media3:
+        output.append(f'[{section}]')
+        tvbox_keys = get_keys(tvbox.get(section, []))
+        merged = tvbox.get(section, []) + [
+            line for line in media3.get(section, [])
+            if '=' not in line or line.split('=')[0].strip() not in tvbox_keys
+        ]
+        output.extend(merged)
+        output.append('')
+
+with open('gradle/libs.merged.toml', 'w') as f:
+    f.write('\n'.join(output))
+PYEOF
+              sed -i 's/dependencyResolutionManagement {/dependencyResolutionManagement {\n    versionCatalogs { create("libs") { from(files("gradle\/libs.merged.toml")) } }/' settings.gradle
               # 添加 media3 模块（模块名=:lib-{name}，与内部 project 引用一致）
               for name in common session exoplayer container decoder ui ui-danmaku database datasource datasource-okhttp extractor; do
                 echo "include ':lib-${name}'" >> settings.gradle
