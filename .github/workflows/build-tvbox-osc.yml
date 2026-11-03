@@ -147,7 +147,7 @@ jobs:
               python3 "${{ github.workspace }}/.github/scripts/merge_toml.py"
               sed -i 's/dependencyResolutionManagement {/dependencyResolutionManagement {\n    versionCatalogs { create("libs") { from(files("gradle\/libs.merged.toml")) } }/' settings.gradle
               # 添加 media3 模块（模块名=:lib-{name}，与内部 project 引用一致）
-              for name in common session exoplayer container decoder ui ui-danmaku database datasource datasource-okhttp extractor; do
+              for name in common session exoplayer container decoder ui ui_danmaku database datasource datasource_okhttp extractor; do
                 echo "include ':lib-${name}'" >> settings.gradle
                 echo "project(':lib-${name}').projectDir = new File(rootDir, '../media/libraries/${name}')" >> settings.gradle
               done
@@ -157,7 +157,7 @@ jobs:
               sed -i '/testImplementation/d' ../media/libraries/*/build.gradle.kts
               sed -i '/androidTestImplementation/d' ../media/libraries/*/build.gradle.kts
               # 替换 Maven 依赖为 project 依赖
-              for dep in common session ui exoplayer extractor datasource database datasource-okhttp; do
+              for dep in common session ui exoplayer extractor datasource database datasource_okhttp; do
                 sed -i "/^    coreLibraryDesugaring libs.desugar/i\    implementation project(':lib-${dep}')" app/build.gradle
               done
               # fork 的 DefaultRenderersFactory 缺少 setFfmpegAudioPrefer/setFfmpegVideoPrefer（在文件末尾 } 前插入）
