@@ -30,5 +30,5 @@ for section in ['versions', 'libraries', 'plugins', 'bundles']:
         output.extend(merged)
         output.append('')
 
-with open('gradle/libs.merged.toml', 'w') as f:
+with open('gradle/libs.versions.toml', 'w') as f:
     f.write('\n'.join(output))
