@@ -150,8 +150,6 @@ jobs:
                 echo "include ':lib-${name}'" >> settings.gradle
                 echo "project(':lib-${name}').projectDir = new File(rootDir, '../media/libraries/${name}')" >> settings.gradle
               done
-              # 为 lib-* 模块添加 Kotlin 插件（必须在约定插件之前应用）
-              sed -i '/^plugins {$/a\  id("org.jetbrains.kotlin.android")' ../media/libraries/*/build.gradle.kts
               # 删除 test 依赖（release 构建不需要）
               sed -i '/testImplementation/d' ../media/libraries/*/build.gradle.kts
               sed -i '/androidTestImplementation/d' ../media/libraries/*/build.gradle.kts
