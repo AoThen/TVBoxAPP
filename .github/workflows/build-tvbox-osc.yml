@@ -26,6 +26,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     permissions:
       actions: write
       contents: write
@@ -118,6 +119,63 @@ jobs:
           if [[ "${{ matrix.userName }}" == "xinyi1984" && "${{ matrix.repoName }}" == "TV" && "${{ matrix.branchName }}" == "fongmi" ]]; then
             sed -i 's|/home/runner/work/TVBox-TV/TVBox-TV|${{ github.workspace }}|g' settings.gradle
           fi
+
+      # === FongMi: 完全自主编译 mpv/ffmpeg native 库并封装 AAR（仅 FongMi 分支） ===
+      - name: FongMi Native Checkout
+        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        run: |
+          set -euxo pipefail
+          MPA="${{ github.workspace }}/mpv-android"
+          git clone --depth 1 --branch fongmi https://github.com/FongMi/mpv-android.git "$MPA"
+          git clone --depth 1 --branch fongmi https://github.com/FongMi/mpv.git "$MPA/buildscripts/deps/mpv"
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf pkgconf libtool ninja-build cmake python3-pip gperf nasm patch ant
+          sudo pip3 install meson
+
+      - name: FongMi Native Export Env
+        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        run: |
+          set -euxo pipefail
+          cd "${{ github.workspace }}/mpv-android/buildscripts"
+          ./include/ci.sh export >> "$GITHUB_ENV"
+
+      - name: FongMi Native Cache
+        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/mpv-android-cache
+          key: "${{ env.CACHE_IDENTIFIER }}"
+          enableCrossOsArchive: true
+
+      - name: FongMi Native Build
+        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        run: |
+          set -euxo pipefail
+          cd "${{ github.workspace }}/mpv-android/buildscripts"
+          mkdir -p "${{ runner.temp }}/mpv-android-cache"
+          CACHE_MODE=folder CACHE_FOLDER="${{ runner.temp }}/mpv-android-cache" ./include/ci.sh install
+          MPV_ANDROID_NATIVE_ONLY=1 ./include/ci.sh build
+
+      - name: FongMi Native JNI & Package
+        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        run: |
+          set -euxo pipefail
+          MPA="${{ github.workspace }}/mpv-android"
+          SCRIPTS="${{ github.workspace }}/.github/scripts"
+          TMP="${{ runner.temp }}"
+          # 官方 ffmpeg_jni.cc（androidx/media 1.11.1，最新稳定）
+          curl -sL -o "$TMP/ffmpeg_jni.cc" \
+            https://raw.githubusercontent.com/androidx/media/1.11.1/libraries/decoder_ffmpeg/src/main/jni/ffmpeg_jni.cc
+          # NDK 由 download-sdk.sh 置于 buildscripts/android-ndk-r30
+          bash "$SCRIPTS/build_ffmpeg_jni.sh" \
+            "$MPA/buildscripts/android-ndk-r30" "$TMP/ffmpeg_jni.cc" \
+            "$MPA/buildscripts/prefix" "$TMP/mpv-jni"
+          python3 "$SCRIPTS/make_mpv_aars.py" \
+            --libs-dir "$MPA/app/src/main/libs" \
+            --jni-dir "$TMP/mpv-jni" \
+            --out-dir "${{ github.workspace }}/TVBoxOSC/app/libs"
+          # 清理 native 源，释放磁盘
+          rm -rf "$MPA"
 
       - name: Extra Modify
         if: ${{ env.commit }}
