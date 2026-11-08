@@ -156,6 +156,10 @@ jobs:
           # CMake >=3.27 移除对 <3.5 的兼容；uavs3d 等老依赖的 CMakeLists
           # 声明 min<3.5 会报错，导出该环境变量让 CMake 降级绕过
           export CMAKE_POLICY_VERSION_MINIMUM=3.5
+          # 依赖下载（mbedtls/ffmpeg 等经 wget 拉 GitHub release）偶发 502/503/504
+          # 瞬时故障；wget 默认不重试会直接中断整个编译。写 ~/.wgetrc 让所有
+          # wget 调用对 5xx 重试（ci.sh 的 export WGET 只加 --progress，不覆盖这些）
+          printf 'tries = 5\nretry_connrefused = on\nretry_on_http_error = 500,502,503,504\n' > "$HOME/.wgetrc"
           CACHE_MODE=folder CACHE_FOLDER="${{ runner.temp }}/mpv-android-cache" ./include/ci.sh install
           MPV_ANDROID_NATIVE_ONLY=1 ./include/ci.sh build
 
