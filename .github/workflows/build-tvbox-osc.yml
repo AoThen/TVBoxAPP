@@ -73,7 +73,7 @@ jobs:
           - userName: AoThen
             repoName: ABox
             branchName: dev
-            # java_ver: 17
+            java_ver: 17
 
           - userName: AoThen
             repoName: XBox
