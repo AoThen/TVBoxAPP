@@ -153,6 +153,9 @@ jobs:
           set -euxo pipefail
           cd "${{ github.workspace }}/mpv-android/buildscripts"
           mkdir -p "${{ runner.temp }}/mpv-android-cache"
+          # CMake >=3.27 移除对 <3.5 的兼容；uavs3d 等老依赖的 CMakeLists
+          # 声明 min<3.5 会报错，导出该环境变量让 CMake 降级绕过
+          export CMAKE_POLICY_VERSION_MINIMUM=3.5
           CACHE_MODE=folder CACHE_FOLDER="${{ runner.temp }}/mpv-android-cache" ./include/ci.sh install
           MPV_ANDROID_NATIVE_ONLY=1 ./include/ci.sh build
 
