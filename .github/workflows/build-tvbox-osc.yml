@@ -160,6 +160,10 @@ jobs:
           # 瞬时故障；wget 默认不重试会直接中断整个编译。写 ~/.wgetrc 让所有
           # wget 调用对 5xx 重试（ci.sh 的 export WGET 只加 --progress，不覆盖这些）
           printf 'tries = 5\nretry_connrefused = on\nretry_on_http_error = 500,502,503,504\n' > "$HOME/.wgetrc"
+          # FongMi/mpv fongmi 分支 motion.c 已需 libplacebo PL_HAVE_FRAME_SHADER_MIXER，
+          # 但 FongMi/libplacebo fongmi 分支尚未同步；用 codex/memc-quality-20261105
+          # （兼容当前 libplacebo fongmi 的稳定分支）绕过该不匹配
+          export MPV_GIT_REF=codex/memc-quality-20261105
           CACHE_MODE=folder CACHE_FOLDER="${{ runner.temp }}/mpv-android-cache" ./include/ci.sh install
           MPV_ANDROID_NATIVE_ONLY=1 ./include/ci.sh build
 
@@ -304,6 +308,11 @@ jobs:
 
       - name: Setup Python local.properties
         if: ${{ env.commit && (matrix.repoName != 'TV-APK') }}
+        working-directory: TVBoxOSC
+        run: echo "" > local.properties
+
+      - name: Setup TV-APK local.properties
+        if: ${{ env.commit && matrix.repoName == 'TV-APK' }}
         working-directory: TVBoxOSC
         run: echo "" > local.properties
 
