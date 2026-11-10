@@ -127,7 +127,9 @@ jobs:
           set -euxo pipefail
           MPA="${{ github.workspace }}/mpv-android"
           git clone --depth 1 --branch fongmi https://github.com/FongMi/mpv-android.git "$MPA"
-          git clone --depth 1 --branch fongmi https://github.com/FongMi/mpv.git "$MPA/buildscripts/deps/mpv"
+          # FongMi/mpv fongmi 分支 motion.c 需 libplacebo PL_HAVE_FRAME_SHADER_MIXER，
+          # 但 libplacebo fongmi 尚未同步；用兼容当前 libplacebo 的稳定分支
+          git clone --depth 1 --branch codex/memc-quality-20261105 https://github.com/FongMi/mpv.git "$MPA/buildscripts/deps/mpv"
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends autoconf pkgconf libtool ninja-build cmake python3-pip gperf nasm patch ant
           sudo pip3 install meson
@@ -314,14 +316,21 @@ jobs:
       - name: Setup TV-APK local.properties
         if: ${{ env.commit && matrix.repoName == 'TV-APK' }}
         working-directory: TVBoxOSC
-        run: echo "" > local.properties
+        run: |
+          # TV-APK 上游 build.gradle 的 signingConfigs.release 读取这些 key
+          echo "storeFile=./TVBoxOSC.jks" > local.properties
+          echo "keyAlias=TVBoxOSC" >> local.properties
+          echo "storePassword=TVBoxOSC" >> local.properties
 
 
       - name: Release Apk Sign
         if: ${{ env.commit }}
         working-directory: TVBoxOSC
         run: |
-          if [ "${{ matrix.userName }}" != "FongMi" ]; then
+          # TV-APK 上游已有自有 signingConfigs（build.gradle signingConfigs.release
+          # 读 local.properties 的 storeFile/keyAlias/storePassword），跳过 sed 注入；
+          # 其余分支（TVBoxOS/XBox/ABox 等）仍按原逻辑注入签名配置
+          if [ "${{ matrix.userName }}" != "FongMi" ] && [ "${{ matrix.repoName }}" != "TV-APK" ]; then
             signingConfigs='ICAgIHNpZ25pbmdDb25maWdzIHtcCiAgICAgICAgaWYgKHByb2plY3QuaGFzUHJvcGVydHkoIlJFTEVBU0VfU1RPUkVfRklMRSIpKSB7XAogICAgICAgICAgICBteUNvbmZpZyB7XAogICAgICAgICAgICAgICAgc3RvcmVGaWxlIGZpbGUoUkVMRUFTRV9TVE9SRV9GSUxFKVwKICAgICAgICAgICAgICAgIHN0b3JlUGFzc3dvcmQgUkVMRUFTRV9TVE9SRV9QQVNTV09SRFwKICAgICAgICAgICAgICAgIGtleUFsaWFzIFJFTEVBU0VfS0VZX0FMSUFTXAogICAgICAgICAgICAgICAga2V5UGFzc3dvcmQgUkVMRUFTRV9LRVlfUEFTU1dPUkRcCiAgICAgICAgICAgICAgICB2MVNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICB2MlNpZ25pbmdFbmFibGVkIHRydWVcCiAgICAgICAgICAgICAgICBlbmFibGVWM1NpZ25pbmcgPSB0cnVlXAogICAgICAgICAgICAgICAgZW5hYmxlVjRTaWduaW5nID0gdHJ1ZVwKICAgICAgICAgICAgfVwKICAgICAgICB9XAogICAgfVwKXA=='
             signingConfig='ICAgICAgICAgICAgaWYgKHByb2plY3QuaGFzUHJvcGVydHkoIlJFTEVBU0VfU1RPUkVfRklMRSIpKSB7XAogICAgICAgICAgICAgICAgc2lnbmluZ0NvbmZpZyA9IHNpZ25pbmdDb25maWdzLm15Q29uZmlnXAogICAgICAgICAgICB9XAo='
             signingConfigs="$(echo "$signingConfigs" |base64 -d )"
