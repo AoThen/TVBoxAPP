@@ -122,7 +122,7 @@ jobs:
 
       # === FongMi: 完全自主编译 mpv/ffmpeg native 库并封装 AAR（仅 FongMi 分支） ===
       - name: FongMi Native Checkout
-        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        if: ${{ env.commit != '' && (matrix.userName == 'FongMi' || matrix.repoName == 'TV-APK') }}
         run: |
           set -euxo pipefail
           MPA="${{ github.workspace }}/mpv-android"
@@ -135,22 +135,24 @@ jobs:
           sudo pip3 install meson
 
       - name: FongMi Native Export Env
-        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        if: ${{ env.commit != '' && (matrix.userName == 'FongMi' || matrix.repoName == 'TV-APK') }}
         run: |
           set -euxo pipefail
           cd "${{ github.workspace }}/mpv-android/buildscripts"
           ./include/ci.sh export >> "$GITHUB_ENV"
 
       - name: FongMi Native Cache
-        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        if: ${{ env.commit != '' && (matrix.userName == 'FongMi' || matrix.repoName == 'TV-APK') }}
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/mpv-android-cache
-          key: "${{ env.CACHE_IDENTIFIER }}"
+          # 同一 prefix 依赖 hash 对 TV/TV-APK 两个分支相同，并行保存会争抢同一
+          # key，按 repoName 隔离避免互相覆盖
+          key: "${{ env.CACHE_IDENTIFIER }}-${{ matrix.repoName }}"
           enableCrossOsArchive: true
 
       - name: FongMi Native Build
-        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        if: ${{ env.commit != '' && (matrix.userName == 'FongMi' || matrix.repoName == 'TV-APK') }}
         run: |
           set -euxo pipefail
           cd "${{ github.workspace }}/mpv-android/buildscripts"
@@ -170,18 +172,24 @@ jobs:
           MPV_ANDROID_NATIVE_ONLY=1 ./include/ci.sh build
 
       - name: FongMi Native JNI & Package
-        if: ${{ env.commit != '' && matrix.userName == 'FongMi' }}
+        if: ${{ env.commit != '' && (matrix.userName == 'FongMi' || matrix.repoName == 'TV-APK') }}
         run: |
           set -euxo pipefail
           MPA="${{ github.workspace }}/mpv-android"
           SCRIPTS="${{ github.workspace }}/.github/scripts"
           TMP="${{ runner.temp }}"
-          # 官方 ffmpeg_jni.cc（androidx/media 1.11.1，最新稳定）
+          # ffmpeg_jni.cc 必须与 app 的 media 版本匹配（JNI 签名随版本变化）：
+          # FongMi 用 FongMi/media fork (1.11.0) → 取 1.11.1；TV-APK 用官方 media 1.8.0
+          if [ "${{ matrix.repoName }}" == "TV-APK" ]; then
+            JNI_VER=1.8.0
+          else
+            JNI_VER=1.11.1
+          fi
           curl -sL -o "$TMP/ffmpeg_jni.cc" \
-            https://raw.githubusercontent.com/androidx/media/1.11.1/libraries/decoder_ffmpeg/src/main/jni/ffmpeg_jni.cc
-          # NDK 由 download-sdk.sh 置于 buildscripts/android-ndk-r30
-          bash "$SCRIPTS/build_ffmpeg_jni.sh" \
-            "$MPA/buildscripts/android-ndk-r30" "$TMP/ffmpeg_jni.cc" \
+            "https://raw.githubusercontent.com/androidx/media/$JNI_VER/libraries/decoder_ffmpeg/src/main/jni/ffmpeg_jni.cc"
+          # NDK 由 download-sdk.sh 置于 buildscripts/sdk/android-ndk-r30
+          bash -e "$SCRIPTS/build_ffmpeg_jni.sh" \
+            "$MPA/buildscripts/sdk/android-ndk-r30" "$TMP/ffmpeg_jni.cc" \
             "$MPA/buildscripts/prefix" "$TMP/mpv-jni"
           python3 "$SCRIPTS/make_mpv_aars.py" \
             --libs-dir "$MPA/app/src/main/libs" \
