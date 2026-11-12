@@ -37,6 +37,7 @@ jobs:
           - userName: q215613905
             repoName: TVBoxOS
             branchName: main
+            java_ver: 17
 
           - userName: takagen99
             repoName: Box
@@ -128,8 +129,8 @@ jobs:
           MPA="${{ github.workspace }}/mpv-android"
           git clone --depth 1 --branch fongmi https://github.com/FongMi/mpv-android.git "$MPA"
           # FongMi/mpv fongmi 分支 motion.c 需 libplacebo PL_HAVE_FRAME_SHADER_MIXER，
-          # 但 libplacebo fongmi 尚未同步；用兼容当前 libplacebo 的稳定分支
-          git clone --depth 1 --branch codex/memc-quality-20261105 https://github.com/FongMi/mpv.git "$MPA/buildscripts/deps/mpv"
+          # 对应宏现已由 libplacebo fongmi 分支提供，与 mpv-android 默认 v_ci_libplacebo=fongmi 匹配
+          git clone --depth 1 --branch fongmi https://github.com/FongMi/mpv.git "$MPA/buildscripts/deps/mpv"
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends autoconf pkgconf libtool ninja-build cmake python3-pip gperf nasm patch ant
           sudo pip3 install meson
@@ -165,9 +166,8 @@ jobs:
           # wget 调用对 5xx 重试（ci.sh 的 export WGET 只加 --progress，不覆盖这些）
           printf 'tries = 5\nretry_connrefused = on\nretry_on_http_error = 500,502,503,504\n' > "$HOME/.wgetrc"
           # FongMi/mpv fongmi 分支 motion.c 已需 libplacebo PL_HAVE_FRAME_SHADER_MIXER，
-          # 但 FongMi/libplacebo fongmi 分支尚未同步；用 codex/memc-quality-20261105
-          # （兼容当前 libplacebo fongmi 的稳定分支）绕过该不匹配
-          export MPV_GIT_REF=codex/memc-quality-20261105
+          # 对应宏现由 libplacebo fongmi 分支提供；锁定 fongmi 与默认构建一致
+          export MPV_GIT_REF=fongmi
           CACHE_MODE=folder CACHE_FOLDER="${{ runner.temp }}/mpv-android-cache" ./include/ci.sh install
           MPV_ANDROID_NATIVE_ONLY=1 ./include/ci.sh build
 
