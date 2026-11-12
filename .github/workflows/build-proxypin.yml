@@ -18,7 +18,7 @@ jobs:
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          retain_days: 30
+          retain_days: 7
           keep_minimum_runs: 1
 
       - name: Checkout Source Code
@@ -89,5 +89,5 @@ jobs:
         with:
           name: ProxyPin-android-arm64-${{ steps.version.outputs.version }}
           path: proxypin/dist/*android-arm64-v8a.apk
-          retention-days: 30
+          retention-days: 7
           if-no-files-found: error

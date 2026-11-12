@@ -25,7 +25,7 @@ jobs:
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          retain_days: 30
+          retain_days: 7
           keep_minimum_runs: 1
 
       - name: Check New Commit
@@ -132,6 +132,7 @@ jobs:
         uses: actions/upload-artifact@main
         if: ${{ env.commit }}
         with:
+          retention-days: 7
           name: ${{ matrix.userName }}_${{ matrix.repoName }}_${{ matrix.branchName }}_${{ env.tag }}
           path: |
             Build_${{ matrix.repoName }}_${{ matrix.branchName }}/apk/*
