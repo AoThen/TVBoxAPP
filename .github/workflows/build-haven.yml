@@ -1,0 +1,128 @@
+name: Build Haven
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-haven.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 7
+          keep_minimum_runs: 1
+
+      - name: Checkout Source Code
+        run: |
+          set -o pipefail
+          git clone --depth 1 https://github.com/AoThen/Haven Haven_temp
+          cd Haven_temp
+          for attempt in 1 2 3; do
+            echo "::group::Submodule init attempt $attempt"
+            if git submodule update --init --recursive --jobs 4; then
+              echo "::endgroup::"
+              break
+            fi
+            echo "::endgroup::"
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::Submodule init failed on attempt $attempt; retrying in 15s"
+              sleep 15
+            else
+              echo "::error::Submodule init failed after 3 attempts"
+              exit 1
+            fi
+          done
+          cd ..
+          tar -C Haven_temp --exclude=.git -cf - . | tar -xf - -C .
+          rm -rf Haven_temp
+
+      - name: Setup Toolchain (JDK/SDK/NDK/Go/Rust)
+        uses: ./.github/actions/setup-toolchain
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Decode or generate release keystore
+        id: keystore
+        env:
+          SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$SIGNING_KEY_BASE64" ] && [ -n "$KEY_STORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo "$SIGNING_KEY_BASE64" | base64 -d > haven-release.jks
+            echo "Keystore decoded from secrets (stable signature)"
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "SIGNING_KEY_BASE64 / KEY_STORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD not fully set - generating a fresh keystore"
+            keytool -genkeypair -v -keystore haven-release.jks \
+              -alias haven -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass havenSelfSign -keypass havenSelfSign \
+              -dname "CN=Haven Self-Build, OU=Self, O=AoThen, C=CN"
+            echo "generated=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build signed APK (arm64 full release)
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          if [ -z "$KEYSTORE_PASSWORD" ]; then
+            export KEYSTORE_PASSWORD=havenSelfSign
+            export KEY_ALIAS=haven
+            export KEY_PASSWORD=havenSelfSign
+          fi
+          export KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD
+          set -o pipefail
+          ./gradlew :app:assembleArm64FullRelease \
+            -PtargetAbi=arm64 \
+            -PnoLintVital \
+            -PskipWaylandNatives=true \
+            -PskipFfmpegNatives=true \
+            -PskipUml=true \
+            -Pkotlin.compiler.execution.strategy=in-process \
+            -Dorg.gradle.jvmargs=-Xmx4g 2>&1 | tee build-log.txt
+
+      - name: Prepare Artifact
+        run: |
+          mkdir -p ${{ github.workspace }}/OutAPK/
+          find app/build/outputs/apk -name "*.apk" -exec cp {} ${{ github.workspace }}/OutAPK/ \;
+
+      - name: Upload APK To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Haven-arm64-full-release
+          path: ${{ github.workspace }}/OutAPK/*.apk
+          retention-days: 7
+
+      - name: Upload generated keystore (self-sign fallback only)
+        if: steps.keystore.outputs.generated == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-keystore
+          path: haven-release.jks
+          retention-days: 1
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Haven-build-log
+          path: build-log.txt
+          retention-days: 1
+          if-no-files-found: ignore
