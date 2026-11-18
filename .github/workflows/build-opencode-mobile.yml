@@ -2,6 +2,17 @@ name: Build-OpenCode-Mobile
 
 on:
   workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'APK 包名 applicationId（留空 = 默认 cc.agentlabs.opencode）'
+        required: false
+        default: ''
+        type: string
+      app_name:
+        description: '应用显示名称（留空 = 默认 OpenCode）'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build:
@@ -63,6 +74,27 @@ jobs:
         working-directory: opencode-mobile
         run: npx expo prebuild --platform android --no-install
 
+      - name: Override package & app name
+        if: inputs.package_name != '' || inputs.app_name != ''
+        working-directory: opencode-mobile
+        env:
+          PKG: ${{ inputs.package_name }}
+          APP: ${{ inputs.app_name }}
+        run: |
+          if [[ -n "$PKG" ]]; then
+            [[ "$PKG" =~ ^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$ ]] || { echo "非法包名: $PKG"; exit 1; }
+            sed -i "s/applicationId '[^']*'/applicationId '$PKG'/" android/app/build.gradle
+            echo "applicationId -> $PKG"
+            grep -n "applicationId" android/app/build.gradle
+            echo "PKG_SUFFIX=_$PKG" >> $GITHUB_ENV
+          fi
+          if [[ -n "$APP" ]]; then
+            if printf '%s' "$APP" | grep -q '[<>&"\\|]'; then echo "显示名含特殊字符: $APP"; exit 1; fi
+            sed -i "s|<string name=\"app_name\">[^<]*</string>|<string name=\"app_name\">$APP</string>|" android/app/src/main/res/values/strings.xml
+            echo "app_name -> $APP"
+            grep -n "app_name" android/app/src/main/res/values/strings.xml
+          fi
+
       - name: Build Tailscale AAR
         working-directory: opencode-mobile
         run: bash scripts/build-tailscale-aar.sh
@@ -82,12 +114,12 @@ jobs:
       - name: Prepare Artifact
         run: |
           mkdir -p OutAPK/
-          cp opencode-mobile/android/app/build/outputs/apk/release/app-release.apk OutAPK/OpenCode-Mobile_${{ env.TAG }}_arm64-v8a.apk
+          cp opencode-mobile/android/app/build/outputs/apk/release/app-release.apk "OutAPK/OpenCode-Mobile_${{ env.TAG }}${{ env.PKG_SUFFIX }}_arm64-v8a.apk"
           ls -la OutAPK/
 
       - name: Upload APK To Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OpenCode-Mobile_${{ env.TAG }}
+          name: OpenCode-Mobile_${{ env.TAG }}${{ env.PKG_SUFFIX }}
           path: OutAPK/*.apk
           retention-days: 7
